@@ -1,0 +1,12 @@
+/.agents/
+/.agents/skills/
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/.gitignore
+/.idea/ai.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
+/.codegraph/.gitignore
+/.codegraph/.gitignore
+/.idea/mode_test_platform.iml
