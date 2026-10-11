@@ -1,0 +1,44 @@
+:root {
+  --testflow-font: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --testflow-font-sm: 0.8125rem;
+  --testflow-font-base: 0.9375rem;
+  --testflow-font-lg: 1.125rem;
+  --testflow-font-title: 1.875rem;
+  --testflow-space-1: 0.375rem;
+  --testflow-space-2: 0.75rem;
+  --testflow-space-3: 1rem;
+  --testflow-space-4: 1.5rem;
+  --testflow-space-5: 2rem;
+  --testflow-radius: 0.875rem;
+  --testflow-sidebar-width: 14rem;
+  --testflow-icon-size: 1.125rem;
+  --testflow-hero-icon-size: 4rem;
+  --testflow-desktop-min-width: 1200px;
+  --testflow-content-max-width: 1440px;
+  --testflow-card-text-min-height: 3rem;
+  --testflow-shadow: 0 2px 14px rgb(24 52 34 / 3%);
+}
+:root, .light {
+  --testflow-bg: #f6f8f5;
+  --testflow-surface: #fff;
+  --testflow-text: #22372c;
+  --testflow-muted: #708176;
+  --testflow-line: #e4ebe2;
+  --testflow-accent: #347354;
+  --testflow-accent-soft: #eaf3e8;
+  --testflow-danger: #a44836;
+  --accent: var(--testflow-accent);
+  --accent-foreground: #fff;
+}
+.dark {
+  --testflow-bg: #111a16;
+  --testflow-surface: #1b2720;
+  --testflow-text: #e4eee7;
+  --testflow-muted: #a1b4a7;
+  --testflow-line: #304137;
+  --testflow-accent: #9ecda9;
+  --testflow-accent-soft: #253e2d;
+  --testflow-danger: #f2ad9e;
+  --accent: var(--testflow-accent);
+  --accent-foreground: #142c1d;
+}
