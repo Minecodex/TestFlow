@@ -1,0 +1,16 @@
+{
+  "fields": [
+    {
+      "name": "answer",
+      "type": "Text",
+      "stream": false,
+      "format": "UTF-8"
+    },
+    {
+      "name": "audio",
+      "type": "Audio",
+      "stream": false,
+      "format": "WAV · 16kHz · Mono"
+    }
+  ]
+}

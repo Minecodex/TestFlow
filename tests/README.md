@@ -1,74 +1,94 @@
 # TestFlow 验证
 
-## 正式基础工程
+正式业务、原型逻辑、浏览器交互和视觉比较分别验收。原型内的模拟运行不计入真实执行或评分证据。完整状态与证据索引见 [实施记录](../docs/voice-test-platform/16-完整实施记录.md)。
 
-工作区检查：`pnpm typecheck`、`pnpm build`、`pnpm test:server`。Kubernetes 渲染：`pnpm check:k8s`；两镜像构建后运行 `python3 tests/container-smoke.py`，实际验证 API 代理、SPA 刷新、静态资源 404、健康检查、非 root / 只读运行及数据目录可写，最后自动清理本次测试资源。
-
-`foundation.e2e.mjs` 验证首页真实 API 和刷新、八个业务路由、卡片入口、导航选中、深层地址重载、每页双语、深浅主题及偏好持久化、404 返回。还提供断线和恢复检查函数。2026-10-11 已通过 CUA Playwright facade 执行这些检查；故障检查实际停止本次启动的后端，再重新启动并手动重试恢复。
-
-常规 Playwright 入口已创建，需安装 Chromium 后执行：
+## 类型、构建与业务测试
 
 ```sh
-pnpm exec playwright install chromium
-pnpm test:e2e
-```
-
-playwright.config.mjs 可自动启动前后端，使用 1440 × 1000 桌面视口；foundation.spec.mjs 复用同一验收函数，常规 runner 的断线用网络拦截验证。当前会话浏览器验收通过 CUA 完成，没有运行常规 runner 浏览器；可用 `pnpm exec playwright test --list` 检查测试发现。
-
-CUA 调用：
-
-```js
-const { verifyFoundation, verifyUnavailable, verifyRecovery } = await import('/absolute/project/path/tests/foundation.e2e.mjs');
-const observe = () => tab.getAXState({ emit: false });
-nodeRepl.write(await verifyFoundation(tab, observe));
-// 在测试拥有的后端停止 / 重启后分别调用 verifyUnavailable / verifyRecovery。
-```
-
-以上验证覆盖基础工程，不代表业务功能或模块执行已实现。两套 Kubernetes overlay 和 Ingress 示例通过 1.35 Schema 严格校验，实际集群 rollout 尚未验证。
-
-## 交互原型
-
-运行无需额外依赖的业务逻辑测试：
-
-```sh
+pnpm typecheck
+pnpm build
+uv run --directory server pytest -q
 node --test tests/*.test.cjs
+pnpm check:k8s
 ```
 
-测试通过公共 `demo-test-helpers.cjs` 载入 `docs/demo.html` 的实际业务逻辑，不连接网络、不操作浏览器或注入浏览器状态。17 项测试覆盖 9 个页面和 6 个详情页签渲染、Docker/本地启动声明、镜像/挂载校验、任意语言、有效运行分支快照、排队输入冻结、案例完整性、重跑计数与旧报告、固定评测版本、质量合格线、CER 适用性、任意命名输出预览、文字/多模态执行、开始流与双向显式转换、错误和取消收尾。
+37 项后端测试覆盖会话、持久版本与幂等、素材、ZIP、图契约、流序号/EOS、终态、评测绑定、CER、JSON null/有限数、统计和 Trace 脱敏。默认使用测试 SQLite；设置 `TESTFLOW_TEST_DATABASE_URL` 后使用独立 PostgreSQL 18 测试库。测试会重建业务表，禁止指向正式工作库。两种数据库均已实际通过。
 
-为浏览器导入生成非私人合成文件，并启动静态预览：
+19 项原型及清单测试通过 `demo-test-helpers.cjs` 加载真实 demo 逻辑，不操作浏览器。覆盖 Pod-only 边界、挂载、快照、九页/六页签、排队输入冻结、参考、重跑、旧报告、CER、任意输出字段、媒体、转换、错误、取消、当前尝试和具名控件归属。AI 分数与合格线使用 0–1，CER 保留原始错误率。
+
+`tests/container-smoke.py` 验证开发镜像代理、SPA 刷新、静态资源 404、健康、非 root、只读运行和可写数据目录。该验证不替代 Kubernetes。
+
+## 真实 Kubernetes
+
+使用 Docker Desktop 内置 Kubernetes 的 `docker-desktop` 上下文。先部署全新 `testflow-e2e-<run-id>` namespace，等待迁移、后端与前端 rollout，然后启动 localhost port-forward。集群连接信息来自该 namespace 的私有 `access.json`；全部脚本显式指定 context 和 kubeconfig，不依赖当前全局上下文。不得在同一 namespace 的 rollout 期间运行验收。
+
+```sh
+uv run --project server python scripts/deploy-kubernetes.py --namespace testflow-e2e-<run-id> --port 18775 --load-images
+python3 scripts/port-forward.py --namespace testflow-e2e-<run-id> --port 18775
+uv run --project server python tests/kubernetes/acceptance.py --namespace testflow-e2e-<run-id>
+```
+
+验收要求默认安装为空。随后真实同步固定 Git commit、导入/验证 ZIP、执行 Python/Node.js/Go Pod、检查音频/图片/文字和 Range、Trace、规则、真实 Kimi、重跑、旧报告及资源收尾。真实密钥从本地加密凭据引用读取；不在脚本、日志或公共证据中保存正文。
+
+其他脚本分别覆盖：
+
+- `boundaries.py`：15 项实际 Pod 执行边界与重启恢复。
+- `reliability.py`：7 项终态、数据库中断、取消、身份变化、准备与收尾检查。
+- `live_media.py`：4 项合成实时音频/图片的 EOS、断连和产物完整性。
+- `go_protocol.py`：4 项真实 Go 调用幂等、协议错误和取消停止检查。
+- `code_mount.py`：4 项容器读取固定 commit、只读挂载、快照和回收检查。
+- `backup_restore.py`：6 项数据库/PVC 恢复、历史、媒体和真实加密凭据调用检查。
+- `browser_fixtures.py`：为实际浏览器创建合成错误、取消、JSON null/资产形状 JSON 案例。
+- `draft_change.py`、`browser_control.py`：仅对测试拥有的 namespace 制造版本、会话与数据库故障。
+
+保存证据后使用 `scripts/cleanup-acceptance.py --namespace ...` 回收本次测试资源；该脚本核验 namespace 标签，只停止对应 port-forward。正常 `testflow-dev` 和 Docker Desktop 集群保留。
+
+## 正式浏览器
+
+使用标准 Playwright 1.64 和对应的官方 Chromium 浏览器，在独立 Kubernetes 测试 namespace 实际执行。`platform.spec.mjs` 复用已有 CUA/Playwright 交互函数；`platform-controls.spec.mjs` 分业务记录每个控件的正常及失败/边界路径，包含预期、实际结果、可执行断言和截图。测试通过公开表单、选择、拖拽、键盘和下载交互，不向页面注入应用状态。业务故障在测试拥有的接口、版本或网络请求上构造。
+
+先运行 Kubernetes 完整验收，创建合成文件并安装浏览器：
 
 ```sh
 python3 tests/create-demo-fixtures.py
-python3 -m http.server 8765 --bind 127.0.0.1
+pnpm exec playwright install chromium
+TESTFLOW_E2E_NAMESPACE=testflow-e2e-<run-id> TESTFLOW_BROWSER_RUN_ID=<run-id> pnpm test:e2e
 ```
 
-打开 `http://127.0.0.1:8765/docs/demo.html`。默认合成目录 `/tmp/testflow-ui-audit` 包含 TXT、SVG、可解码 WAV、坏 WAV 及只用于文件选择的 ZIP。该 ZIP 不包含待执行代码。
+完整入口包括四个项目，使用单 worker 串行执行；`controls` 依赖 `workflow`，`states` 依赖 `controls`。不得并行启动多个业务浏览器测试进程。每次结果使用独立目录，防止删除其他运行的截图和 Trace。调试单个项目时可使用 `--project=<name> --no-deps`；详情状态检查要求先有完整通过的控件报告。
 
-两个 `.e2e.mjs` 文件是通过 Codex CUA 支持的 Playwright facade 执行的浏览器测试，使用页面控件与可见 DOM，不通过页面脚本读写应用状态。按正式桌面范围使用宽度至少 1200 像素的视口，将已绑定的 `tab` 和观察函数传入。按阶段执行全流程测试，便于观察和报告进度：
+| 项目 | 验收内容 | 证据 |
+| --- | --- | --- |
+| workflow | 十组真实业务回归、八项历史/返回/版本检查及 108 个主页面布局组合 | `.data/browser-results/<run-id>/.../workflow.json`、脱敏 Trace |
+| controls | 84 项桌面非录音操作，163 条正常、失败或边界用例；登录、凭据、会话恢复额外覆盖 | `.data/acceptance/<namespace>/browser-controls.json` 指向逐项结果、截图和脱敏 Trace |
+| states | 34 类详情、画布、弹窗、抽屉状态 × 三种桌面宽度 × 两种语言 × 两种主题，共 408 个组合 | `state-matrix.json`、逐状态截图 |
+| visual | 九个主页面与原型的严格 PNG 比较 | `screens.json`、`result.json`、差异图 |
 
-```js
-const viewport = await browser.capabilities.get('viewport');
-await viewport.set({ width: 1440, height: 1000 });
-const workflow = await import('/absolute/project/path/tests/demo-workflow.e2e.mjs');
-const observe = () => tab.getAXState({ emit: false });
-try {
-  workflow.context.passed.length = 0;
-  workflow.context.downloads.length = 0;
-  for (const stage of ['resources', 'assets', 'datasets', 'flow', 'canvas', 'tasks', 'history', 'utility']) {
-    nodeRepl.write(await workflow.verifyStage(stage, tab, observe));
-  }
-  const { default: verifyModuleRuntime } = await import('/absolute/project/path/tests/demo-module-runtime.e2e.mjs');
-  nodeRepl.write(await verifyModuleRuntime(tab, observe));
-} finally {
-  await viewport.reset();
-}
+录音相关三个控件按用户要求保留未验收；测试使用合成 WAV/PNG，不申请麦克风权限。移动菜单排除。`action-manifest.json` 共 88 项，保存已验证操作的具体正常和失败/边界用例 ID；清单静态测试只校验归属，真实覆盖门槛由运行时 `ControlLedger` 检查。
+
+登录先完成再开启 Trace，凭据表单验收在 Trace 结束后进行。原始网络 Trace 保存在 0600 私有文件；`sanitize-browser-trace.py` 剔除 Cookie、授权头、密码、密钥、凭据正文及对应二进制资源后生成可查看的 `trace.zip`。脱敏器另有四项独立测试：
+
+```sh
+uv run --project server pytest -q tests/test_trace_sanitize.py
 ```
 
-浏览器测试会重新加载页面，只修改当前浏览器中的内存演示数据。文件选择使用合成文件；下载测试实际生成流程和执行 JSON 文件，路径保存在 `workflow.context.downloads`。全部浏览器场景共 8 组主流程 + 6 组模块配置。当前审查另外实际检查了节点拖动、编辑过程中搜索快捷键保护、无 ASR 的严格评测，结果见 [原型全流程审查](../docs/voice-test-platform/10-首版范围与验收.md#2026-10-11-原型全流程审查结果)。
+## 视觉与布局
 
-全流程测试覆盖注册/同步/编辑/隐藏恢复、真实素材解码及逐文件错误、案例向导和结构修订、从零编排 DAG、组装/循环/重复边/超时校验、删边取消、节点增删、保存撤销、快速输入和导出、显式任务/并发/失败继续/取消、重跑/旧报告、复评错误/恢复/旧版本及一致统计、搜索/导览/快捷键/播放。模块测试验证 ZIP 文件选择重绘保留、启动方式优先、本地语言/入口/自定义语言、Docker 镜像/挂载及目录校验、两套草稿、固定 commit 和历史快照、顺序限制。
+`visual-fixtures.cjs` 从真实 demo 状态生成相同数据的只读接口与基准 HTML；仅固定时间/随机 ID、媒体 URL并关闭原型入场动画。夹具不进入正常安装，也不计入真实执行或评分证据。
 
-修改 `.mjs` 后，持久 Node REPL 可能缓存旧模块。复测时使用新的临时副本路径再 import；对 HTML 修改则重新加载页面。全流程阶段可以分成多个 CUA 调用，避免长时间占用单次调用。
+标准 Playwright 的 `visual` 项目自动启动只读服务器，使用同一 Chromium、系统字体栈、DPR 1 和 1440×1000 视口，等待字体、图片和两帧渲染完成，保存原始 PNG。`visual-compare.py` 按 RGB 最大通道差异 >16 比较，门槛保持 0.5%；仅允许显式遮罩动态 ID、时间和耗时，不遮罩布局、文本、按钮、状态或错误。当前九页全部通过，差异 0.209%–0.484%，没有遮罩。失败保留非零退出码及差异图。
 
-本轮没有授予或使用麦克风权限；录音实际采集及权限拒绝路径需要独立浏览器环境验证。正式模块执行器尚未实现。原型测试不代表真实 ZIP 解包/动态组件、Git/依赖准备、本地/Docker 启动、HTTP/私有 WebSocket、远端取消、AI 服务或持久化已通过集成验收；双语、主题与正式 React/HeroUI 构建也不在此单文件测试范围。
+```sh
+pnpm build
+TESTFLOW_BROWSER_RUN_ID=<visual-run-id> pnpm exec playwright test --project=visual --no-deps
+```
+
+`states` 在真实 Kubernetes 界面等待数据请求和有限时长入场动画完成后截图，检查页面横向溢出、可见控件位置、滚动容器、字号、完整模块名称和弹窗结构。408 个状态截图用于视觉复核，不等同于 408 次原型像素比较；严格像素比例只针对九个主页面。表格宽度不足时使用独立滚动。
+
+CUA 的人工截图及 DOM/AX 观察单独保存，补充检查执行评分、画布、弹窗和抽屉；它们不冒充标准 Playwright 网络 Trace。最终结果与限制见 [实施记录](../docs/voice-test-platform/16-完整实施记录.md)。
+
+## 极小模型实际场景与扩大对照
+
+`tests/kubernetes/tiny_scenario.py` 在独立 namespace 同步虚拟项目并执行 BM25、PocketSphinx、Tesseract、Kimi SSE 和 eSpeak 五个实际模块，覆盖文字/语音/图片三条链路、规则、真实 AI、重跑和固定报告。`tests/tiny-scenario-ui.e2e.mjs` 查看真实报告、播放产物、检查六个页签、Kimi 评分及新建流程输入输出选项。步骤与体积见 [实验说明](../examples/scenarios/tiny-helpdesk/README.md)。
+
+`tests/platform-detail-visual.e2e.mjs` 对十三个弹窗、详情、画布和报告状态保存实际原型差异。它是诊断入口；不把有差异的状态标为通过，也不把缺少依赖/截图等基础错误当作视觉差异。当前十三状态未达到 0.5% 门槛，具体结果见 [第 18 篇](../docs/voice-test-platform/18-极小模型场景与界面对照.md)。

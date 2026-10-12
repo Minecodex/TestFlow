@@ -1,0 +1,10 @@
+{
+  "fields": [
+    {
+      "name": "text",
+      "type": "Text",
+      "format": "UTF-8",
+      "stream": true
+    }
+  ]
+}

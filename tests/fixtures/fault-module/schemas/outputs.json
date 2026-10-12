@@ -1,0 +1,16 @@
+{
+  "fields": [
+    {
+      "name": "text",
+      "type": "Text",
+      "format": "UTF-8",
+      "stream": true
+    },
+    {
+      "name": "stats",
+      "type": "JSON",
+      "format": "application/json",
+      "stream": false
+    }
+  ]
+}

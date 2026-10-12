@@ -1,0 +1,10 @@
+{
+  "fields": [
+    {
+      "name": "answer",
+      "type": "Text",
+      "stream": false,
+      "format": "UTF-8"
+    }
+  ]
+}

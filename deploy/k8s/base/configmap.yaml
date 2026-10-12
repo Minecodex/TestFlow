@@ -5,3 +5,4 @@ metadata:
 data:
   TESTFLOW_ENVIRONMENT: production
   TESTFLOW_DATA_DIR: /data
+  TESTFLOW_COOKIE_SECURE: "true"

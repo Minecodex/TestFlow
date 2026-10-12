@@ -1,0 +1,232 @@
+.testflow-card {
+  background: var(--testflow-surface);
+  border: 1px solid var(--testflow-line);
+  border-radius: var(--testflow-radius);
+  padding: var(--testflow-px-21);
+  box-shadow: var(--testflow-shadow);
+}
+.testflow-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--testflow-space-3);
+}
+.testflow-module-line {
+  background: var(--testflow-bg);
+}
+.testflow-upload {
+  border: 1px dashed var(--testflow-line);
+  border-radius: var(--testflow-px-8);
+  padding: var(--testflow-px-22);
+  background: var(--testflow-bg);
+}
+.testflow-audio {
+  width: 100%;
+  height: var(--testflow-px-32);
+}
+.testflow-asset-image {
+  max-width: 100%;
+  max-height: var(--testflow-px-300);
+  border-radius: var(--testflow-px-8);
+  border: 1px solid var(--testflow-line);
+}
+.testflow-tabs {
+  display: flex;
+  gap: var(--testflow-space-4);
+  border-bottom: 1px solid var(--testflow-line);
+  margin: var(--testflow-px-20) 0;
+}
+.testflow-tabs .testflow-btn {
+  border: 0;
+  background: none;
+  border-radius: 0;
+  padding: var(--testflow-px-11) var(--testflow-px-1);
+}
+.testflow-tabs [aria-selected="true"] {
+  color: var(--testflow-accent);
+  border-bottom: 2px solid var(--testflow-accent);
+}
+.testflow-stat {
+  padding: var(--testflow-px-22);
+  background: var(--testflow-surface);
+  border: 1px solid var(--testflow-line);
+  border-radius: var(--testflow-radius);
+}
+.testflow-stat-value {
+  font-size: var(--testflow-px-32);
+  font-family: var(--testflow-mono);
+  color: var(--testflow-accent);
+}
+.testflow-row-actions {
+  display: flex;
+  gap: var(--testflow-px-5);
+  justify-content: flex-end;
+}
+.testflow-recording {
+  color: var(--testflow-danger);
+}
+.testflow-report-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--testflow-space-3);
+  margin-bottom: var(--testflow-px-20);
+}
+.testflow-timeline-node {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--testflow-px-12);
+  border-radius: var(--testflow-px-7);
+  margin-bottom: var(--testflow-space-1);
+  border: 1px solid var(--testflow-line);
+}
+.testflow-timeline-node[aria-pressed="true"] {
+  background: var(--testflow-accent-soft);
+}
+.testflow-error-code {
+  color: var(--testflow-danger);
+  font-family: var(--testflow-mono);
+}
+.testflow-designer {
+  display: grid;
+  grid-template-columns: var(--testflow-px-174) minmax(0, 1fr) var(
+      --testflow-px-268
+    );
+  height: var(--testflow-px-620);
+  border: 1px solid var(--testflow-line);
+  border-radius: var(--testflow-px-11);
+  overflow: hidden;
+  background: var(--testflow-surface);
+}
+.testflow-palette {
+  padding: var(--testflow-px-17) var(--testflow-px-12);
+  border-right: 1px solid var(--testflow-line);
+  overflow: auto;
+}
+.testflow-palette .testflow-btn {
+  width: 100%;
+  justify-content: flex-start;
+  margin: var(--testflow-space-1) 0;
+  font-size: var(--testflow-px-10);
+}
+.testflow-palette-name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.testflow-canvas {
+  position: relative;
+  background: var(--testflow-bg);
+  overflow: hidden;
+}
+.testflow-inspector {
+  padding: var(--testflow-px-18) var(--testflow-px-17);
+  overflow: auto;
+  border-left: 1px solid var(--testflow-line);
+  background: var(--testflow-surface);
+}
+.testflow-flow-node {
+  position: relative;
+  width: var(--testflow-px-180);
+  background: var(--testflow-surface);
+  border: 1px solid var(--testflow-line);
+  border-radius: var(--testflow-px-10);
+  box-shadow: var(--testflow-shadow);
+}
+.testflow-flow-node.testflow-selected {
+  border-color: var(--testflow-accent);
+  box-shadow: 0 0 0 var(--testflow-px-3) var(--testflow-accent-soft);
+}
+.testflow-flow-node.testflow-node-start {
+  background: var(--testflow-accent-soft);
+}
+.testflow-node-head {
+  color: var(--testflow-text);
+}
+.testflow-canvas-controls {
+  position: absolute;
+  bottom: var(--testflow-px-14);
+  left: var(--testflow-px-14);
+  display: flex;
+  z-index: 5;
+  background: var(--testflow-surface);
+  border: 1px solid var(--testflow-line);
+  border-radius: var(--testflow-px-6);
+  padding: var(--testflow-px-3);
+}
+.testflow-flow-node .testflow-module-icon svg {
+  width: var(--testflow-px-14);
+  height: var(--testflow-px-14);
+}
+.testflow-canvas .react-flow__handle {
+  width: var(--testflow-px-13);
+  height: var(--testflow-px-13);
+  background: var(--testflow-surface);
+  border: 2px solid var(--testflow-accent);
+}
+.testflow-canvas .react-flow__edge-path {
+  stroke: var(--testflow-accent);
+  stroke-width: 2;
+}
+.testflow-canvas .react-flow__attribution {
+  background: var(--testflow-surface);
+  font-size: var(--testflow-px-8);
+}
+.testflow-execution-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid var(--testflow-line);
+  border-radius: var(--testflow-px-8);
+  background: var(--testflow-surface);
+  padding: var(--testflow-px-15) 0;
+  margin: var(--testflow-px-18) 0;
+}
+.testflow-execution-summary > div {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--testflow-px-17);
+  border-right: 1px solid var(--testflow-line);
+  overflow-wrap: anywhere;
+  gap: var(--testflow-space-1);
+  font-size: var(--testflow-font-sm);
+}
+.testflow-execution-summary small {
+  color: var(--testflow-muted);
+}
+.testflow-trace-grid {
+  display: grid;
+  grid-template-columns: var(--testflow-px-310) minmax(0, 1fr);
+  gap: var(--testflow-px-18);
+}
+.testflow-timeline-node {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.testflow-feedback {
+  position: fixed;
+  right: var(--testflow-space-4);
+  bottom: var(--testflow-space-4);
+  z-index: 200;
+  background: var(--testflow-surface);
+  border: 1px solid var(--testflow-border);
+  border-radius: var(--testflow-radius);
+  box-shadow: var(--testflow-shadow);
+  padding: var(--testflow-space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--testflow-space-3);
+  color: var(--testflow-green);
+}
+.testflow-evidence-selected {
+  outline: var(--testflow-px-2) solid var(--testflow-accent);
+  outline-offset: var(--testflow-px-3);
+  border-radius: var(--testflow-radius-md);
+  background: var(--testflow-accent-soft);
+}
+.testflow-search-result {
+  width: 100%;
+  justify-content: space-between;
+  text-align: left;
+}

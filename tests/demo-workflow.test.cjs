@@ -62,7 +62,7 @@ test('reruns preserve finished report results and plan denominator while showing
 test('report scoring selects the latest finished evaluation of the fixed profile/version', () => {
   const d = loadDemo(), t = d.state.tasks[0], ex = d.latestAttempt(t, t.plan[0]);
   const original = d.latestEval(ex, t.profile), before = d.rates([ex], 'quality', t.profile);
-  const other = d.clone(d.state.profiles[1]); other.dimensions.at(-1).threshold = 5;
+  const other = d.clone(d.state.profiles[1]); other.dimensions.at(-1).threshold = 1;
   ex.evaluations.push(d.evaluationFor(ex, other));
   assert.equal(d.latestEval(ex).verdict, 'fail');
   assert.equal(d.latestEval(ex, t.profile).id, original.id);
@@ -77,7 +77,7 @@ test('report scoring selects the latest finished evaluation of the fixed profile
 test('quality thresholds change verdict and report snapshots retain the previous scores', () => {
   const d = loadDemo(), t = d.state.tasks[0], ex = d.latestAttempt(t, t.plan[0]);
   d.reportSnapshot(t); const original = JSON.stringify(t.reportHistory[0]);
-  const p = d.clone(t.profile); p.dimensions.find(v => v.kind === 'quality').threshold = 5;
+  const p = d.clone(t.profile); p.dimensions.find(v => v.kind === 'quality').threshold = 1;
   const evaluation = d.evaluationFor(ex, p);
   assert.equal(evaluation.dimensions.find(v => v.kind === 'quality').verdict, 'fail');
   ex.evaluations.push(evaluation); d.reportSnapshot(t);
@@ -85,7 +85,7 @@ test('quality thresholds change verdict and report snapshots retain the previous
   assert.equal(d.verdict(ex, t.profile), 'fail');
 });
 
-test('CER is inapplicable without ASR, while missing references remain explicit for ASR', async () => {
+test('CER uses an explicit node binding and preserves missing-reference evidence', async () => {
   const d = loadDemo(), p = d.state.profiles[0];
   const t = d.buildTask('Strict text', [{ datasetId: 'ds-text', flowId: 'flow-text' }], p, 1);
   const ex = d.makeExecution(t, t.plan[0]); await d.runExecution(ex);
@@ -156,4 +156,19 @@ test('node failure stops the case and cancellation keeps its terminal state afte
   d.controllers.get(canceled.id).cancel(); await pending;
   assert.equal(canceled.status, 'canceled'); assert.equal(canceled.cleanup, 'stopped');
   assert.equal(canceled.winner, null);
+});
+
+test('current history attempts retain independent task batches and keep old attempts in all-history mode', () => {
+  const d = loadDemo(), original = d.state.executions[0];
+  const rerun = {...d.clone(original), id: 'history-new-attempt', attempt: original.attempt + 1};
+  const independent = {...d.clone(original), id: 'history-other-batch', batchId: 'other-batch', attempt: rerun.attempt + 1};
+  d.state.executions.push(rerun, independent);
+  d.state.view.executionId = null;
+  d.state.view.historyAttempts = 'all';
+  assert.ok(d.pageRenderers.executions().includes('data-id="'+original.id+'"'));
+  d.state.view.historyAttempts = 'current';
+  const current = d.pageRenderers.executions();
+  assert.ok(!current.includes('data-id="'+original.id+'"'));
+  assert.ok(current.includes('data-id="'+rerun.id+'"'));
+  assert.ok(current.includes('data-id="'+independent.id+'"'));
 });

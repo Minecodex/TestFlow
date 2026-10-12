@@ -1,14 +1,15 @@
-import { usePreferences } from '../shared/state/preferences';
-import { commonZh, commonEn } from './common';
-import { overviewZh, overviewEn } from './overview';
-import { repositoriesZh, repositoriesEn } from './repositories';
-import { modulesZh, modulesEn } from './modules';
-import { assetsZh, assetsEn } from './assets';
-import { datasetsZh, datasetsEn } from './datasets';
-import { pipelinesZh, pipelinesEn } from './pipelines';
-import { evaluationZh, evaluationEn } from './evaluation';
-import { tasksZh, tasksEn } from './tasks';
-import { executionsZh, executionsEn } from './executions';
+import { authZh, authEn } from "./auth";
+import { usePreferences } from "../shared/state/preferences";
+import { commonZh, commonEn } from "./common";
+import { overviewZh, overviewEn } from "./overview";
+import { repositoriesZh, repositoriesEn } from "./repositories";
+import { modulesZh, modulesEn } from "./modules";
+import { assetsZh, assetsEn } from "./assets";
+import { datasetsZh, datasetsEn } from "./datasets";
+import { pipelinesZh, pipelinesEn } from "./pipelines";
+import { evaluationZh, evaluationEn } from "./evaluation";
+import { tasksZh, tasksEn } from "./tasks";
+import { executionsZh, executionsEn } from "./executions";
 
 const featureMessages = {
   repositories: { zh: repositoriesZh, en: repositoriesEn },
@@ -23,7 +24,9 @@ const featureMessages = {
 export type FeatureId = keyof typeof featureMessages;
 
 const zh = {
-  common: commonZh, overview: overviewZh,
+  common: commonZh,
+  overview: overviewZh,
+  auth: authZh,
   repositories: featureMessages.repositories.zh,
   modules: featureMessages.modules.zh,
   assets: featureMessages.assets.zh,
@@ -34,7 +37,9 @@ const zh = {
   executions: featureMessages.executions.zh,
 };
 const en: typeof zh = {
-  common: commonEn, overview: overviewEn,
+  common: commonEn,
+  overview: overviewEn,
+  auth: authEn,
   repositories: featureMessages.repositories.en,
   modules: featureMessages.modules.en,
   assets: featureMessages.assets.en,
@@ -45,5 +50,5 @@ const en: typeof zh = {
   executions: featureMessages.executions.en,
 };
 export function useMessages() {
-  return usePreferences((state) => state.locale) === 'en-US' ? en : zh;
+  return usePreferences((state) => state.locale) === "en-US" ? en : zh;
 }

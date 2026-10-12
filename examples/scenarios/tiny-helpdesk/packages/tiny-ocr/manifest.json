@@ -1,0 +1,18 @@
+{
+  "protocol": "testflow.module.v1",
+  "id": "tiny-ocr",
+  "name": "Tiny English OCR",
+  "version": "1.0.0",
+  "description": "Real small-model helpdesk experiment; English fixtures; not a quality benchmark",
+  "exposes_trace": true,
+  "defaults": {},
+  "runtime": {
+    "mode": "pod",
+    "image": "testflow/tiny-ocr:v1.0.0-acc71c2d593b",
+    "port": 8080,
+    "reuse_scope": "batch_node",
+    "requires_sequential": false,
+    "cpu": "500m",
+    "memory": "384Mi"
+  }
+}

@@ -1,13 +1,14 @@
-import { GitBranch, Boxes, AudioLines, Database, Workflow, ClipboardCheck, ListChecks, History, type LucideIcon } from 'lucide-react';
-import type { FeatureId } from '../i18n';
+import type { ComponentType } from "react";
+import { RepoIcon, BoxIcon, AudioIcon, DatabaseIcon, FlowIcon, JudgeIcon, TaskIcon, HistoryIcon } from "../shared/icons";
+import type { FeatureId } from "../i18n";
 
 export const features = [
-  { id: 'repositories', path: '/repositories', icon: GitBranch },
-  { id: 'modules', path: '/modules', icon: Boxes },
-  { id: 'assets', path: '/assets', icon: AudioLines },
-  { id: 'datasets', path: '/datasets', icon: Database },
-  { id: 'pipelines', path: '/pipelines', icon: Workflow },
-  { id: 'evaluation', path: '/evaluation-profiles', icon: ClipboardCheck },
-  { id: 'tasks', path: '/test-tasks', icon: ListChecks },
-  { id: 'executions', path: '/executions', icon: History },
-] satisfies { id: FeatureId; path: string; icon: LucideIcon }[];
+  { id: "repositories", path: "/repositories", icon: RepoIcon },
+  { id: "modules", path: "/modules", icon: BoxIcon },
+  { id: "assets", path: "/assets", icon: AudioIcon },
+  { id: "datasets", path: "/datasets", icon: DatabaseIcon },
+  { id: "pipelines", path: "/pipelines", icon: FlowIcon },
+  { id: "evaluation", path: "/evaluation-profiles", icon: JudgeIcon },
+  { id: "tasks", path: "/test-tasks", icon: TaskIcon },
+  { id: "executions", path: "/executions", icon: HistoryIcon },
+] satisfies { id: FeatureId; path: string; icon: ComponentType<{size?:number}> }[];

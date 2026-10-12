@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: testflow-server
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: testflow-module
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: testflow-module-pods
+rules:
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: [create, get, list, watch, delete]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: testflow-module-pods
+subjects:
+  - kind: ServiceAccount
+    name: testflow-server
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: testflow-module-pods
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: testflow-registry-secrets
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create", "get", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: testflow-registry-secrets
+subjects:
+  - kind: ServiceAccount
+    name: testflow-server
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: testflow-registry-secrets

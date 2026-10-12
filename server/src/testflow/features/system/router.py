@@ -12,5 +12,5 @@ async def system_status(request: Request) -> SystemStatus:
     return SystemStatus(
         version=__version__,
         database="configured" if request.app.state.database.engine else "not_configured",
-        features=[FeatureStatus(id=feature) for feature in FEATURES],
+        features=[FeatureStatus(id=feature, state="available" if request.app.state.database.engine else "planned") for feature in FEATURES],
     )

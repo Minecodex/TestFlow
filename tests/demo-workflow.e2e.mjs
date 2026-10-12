@@ -188,14 +188,14 @@ export async function verifyStage(stage, tab, observe, fixtureRoot = '/tmp/testf
     await until(async()=>(await ui.locator('#toasts').innerText()).includes('新评分已完成，旧记录全部保留'),'Reevaluation must complete');
     await click('历史记录'); check((await content()).includes('评测错误'), 'Old scoring error stays in history');
     await go('evaluation'); await ui.locator('[data-a="select-profile"][data-id="quality"]').click(); await click('编辑配置');
-    await label('材料一致性合格线').fill('5'); await click('保存评测版本');
+    await label('材料一致性合格线').fill('1'); await click('保存评测版本');
     check((await content()).includes('v2'), 'Profile edit creates a new version');
     await go('executions'); await click('清空筛选');
     await ui.locator('tr').filter({ hasText: context.successId }).getByRole('button', { name: '打开执行详情', exact: true }).click(); await click('仅重新评测');
     check(await label('评测配置版本').evaluate(el => Array.from(el.options).some(o => o.value === 'quality@1')), 'Original profile version remains available');
     await choose('评测配置版本', 'quality@2'); await click('新增评测记录');
     await until(async()=>(await ui.locator('#toasts').innerText()).includes('新评分已完成，旧记录全部保留'),'Reevaluation must complete');
-    await click('评测结果'); check((await ui.locator('.evidence').allTextContents()).join(' ').includes('合格线 5'), 'Latest detail uses new threshold');
+    await click('评测结果'); check((await ui.locator('.evidence').allTextContents()).join(' ').includes('合格线 1'), 'Latest detail uses new threshold');
     await go('tasks'); await click('E2E 批次故障闭环');
     check((await content()).includes('无参考质量通过率 100%'), 'Batch report retains original scoring version');
     await go('overview'); await choose('统计评测口径', 'quality@2');

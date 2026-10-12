@@ -1,0 +1,166 @@
+.testflow-stat {
+  padding: var(--testflow-px-19) var(--testflow-px-22);
+  border-radius: var(--testflow-px-10);
+}
+.testflow-stat-value {
+  font-size: var(--testflow-px-29);
+  color: var(--testflow-text);
+}
+.testflow-stat-icon svg {
+  width: var(--testflow-px-17);
+  height: var(--testflow-px-17);
+}
+.testflow-journey {
+  background: var(--testflow-surface);
+}
+.testflow-journey .testflow-journey-step {
+  height: auto;
+  display: block;
+  width: 100%;
+  border-right: var(--testflow-px-1) solid var(--testflow-line);
+  border-radius: 0;
+  padding: var(--testflow-px-2) var(--testflow-px-5);
+  font-size: var(--testflow-font-base);
+  line-height: 1.6;
+  color: var(--testflow-color-617a67);
+  font-weight: 400;
+}
+.testflow-journey .testflow-journey-step svg {
+  width: var(--testflow-px-17);
+  height: var(--testflow-px-17);
+  margin: var(--testflow-px-5) auto var(--testflow-px-8);
+}
+.testflow-journey .testflow-journey-step:last-child {
+  border-right: 0;
+}
+.testflow-overview table {
+  table-layout: auto;
+}
+.testflow-overview td,
+.testflow-overview th {
+  padding-left: var(--testflow-px-15);
+  padding-right: var(--testflow-px-15);
+}
+.testflow-overview td .testflow-task-title {
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  white-space: normal;
+  text-align: left;
+}
+.testflow-resource-panel > .testflow-panel-body { padding: var(--testflow-px-20) var(--testflow-px-22); }
+.testflow-overview-scope {
+  min-height: var(--testflow-px-36);
+  margin-bottom: var(--testflow-px-18);
+  font-size: var(--testflow-px-11);
+  color: var(--testflow-muted);
+}
+.testflow-overview-scope .testflow-field > :is(label, [data-slot="label"]) {
+  display: none;
+}
+.testflow-overview-scope .testflow-field {
+  max-width: var(--testflow-px-300);
+  width: fit-content;
+}
+.testflow-overview-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(var(--testflow-px-290), 1fr);
+  gap: var(--testflow-px-18);
+}
+.testflow-btn.testflow-resource-summary {
+  width: 100%;
+  text-align: left;
+  justify-content: space-between;
+  padding: var(--testflow-px-14) 0;
+  color: var(--testflow-muted);
+  font-weight: 400;
+  border: 0;
+  border-bottom: var(--testflow-px-1) solid var(--testflow-line);
+  border-radius: 0;
+}
+.testflow-resource-summary:last-child {
+  border-bottom: 0;
+}
+.testflow-resource-summary strong {
+  color: var(--testflow-color-415c37);
+  font-weight: 550;
+  font-family: var(--testflow-mono);
+  font-size: var(--testflow-px-17);
+}
+.testflow-resource-icon {
+  display: grid;
+  place-items: center;
+  width: var(--testflow-px-37);
+  height: var(--testflow-px-37);
+  border-radius: var(--testflow-px-9);
+  background: var(--testflow-accent-soft);
+  color: var(--testflow-accent);
+}
+.testflow-btn.testflow-resource-summary { font-weight: 550; color: var(--testflow-text); line-height: 1.6; }
+.testflow-resource-summary > .testflow-grow { font-size: var(--testflow-px-11); color: var(--testflow-color-809573); }
+.testflow-resource-summary > .testflow-resource-icon { color: var(--testflow-color-7e9b73); }
+.testflow-overview .testflow-intro .testflow-eyebrow { color: var(--testflow-color-7e9972); }
+.testflow-overview td:last-child { vertical-align: top; }
+.testflow-block {
+  display: block;
+}
+.testflow-progress-cell {
+  min-width: 0;
+}
+.testflow-run-distribution {
+  display: flex;
+  gap: var(--testflow-px-15);
+  padding-top: var(--testflow-px-24);
+  justify-content: space-between;
+  align-items: flex-end;
+  overflow-x: auto;
+}
+.testflow-run-bar {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--testflow-px-5);
+  padding: 0;
+  gap: var(--testflow-px-8);
+  min-width: var(--testflow-px-60);
+  width: 100%;
+  font-size: var(--testflow-px-10);
+}
+.testflow-spark-bar {
+  display: block;
+  width: 70%;
+  max-width: var(--testflow-px-28);
+  border-radius: var(--testflow-px-3) var(--testflow-px-3) 0 0;
+  background: var(--testflow-color-dfebd9);
+}
+.testflow-spark-bar.testflow-state-failed {
+  background: var(--testflow-chart-failed-fill);
+}
+.testflow-run-bar:last-child .testflow-spark-bar { background: var(--testflow-color-629861); }
+.testflow-batch-value {
+  margin-bottom: var(--testflow-px-3);
+}
+.testflow-batch-value small {
+  font-size: var(--testflow-px-14);
+  color: var(--testflow-muted);
+  letter-spacing: 0;
+}
+.testflow-resource-panel > .testflow-panel-body {
+  padding: var(--testflow-px-6) var(--testflow-px-22);
+}
+.testflow-overview .testflow-task-title {
+  color: var(--testflow-color-3c5242);
+  font-size: var(--testflow-px-12);
+}
+.testflow-overview-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--testflow-px-23);
+  font-size: var(--testflow-px-10);
+  color: var(--testflow-muted);
+}
+
+.testflow-btn.testflow-resource-summary { height: auto; min-height: 0; padding: var(--testflow-px-14) 0; gap: var(--testflow-px-12); }
+.testflow-overview-scope .testflow-input { font-size: var(--testflow-px-11); }
+.testflow-overview .testflow-badge { overflow-wrap: normal; word-break: normal; }

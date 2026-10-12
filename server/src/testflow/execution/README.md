@@ -1,5 +1,7 @@
 # 执行层边界
 
-后端暂定单体服务，本目录与业务接口在同一个应用中。后续按职责增加计划冻结、案例调度、DAG、终态/收尾、启动器和通信实现，不启动独立 Worker 服务。
+执行层与业务接口运行在同一个 FastAPI 应用进程内。`scheduler.py` 从数据库领取持久操作并调度已冻结的计划项；`engine.py` 处理 DAG、终态裁决、超时和独立收尾；`runners/pods.py` 管理模块 Pod、身份核验、复用与回收。后台重启核对持久记录和遗留 Pod，已经启动且无法恢复的执行记录为中断，未开始的计划继续。
 
-模块使用任意语言，通过统一 HTTP 管理/WebSocket 流式契约调用。本地进程与 Docker 启动器属于平台运行方式；模块私有协议与业务调用留在模块代码中。实际执行器、运行准备及协议仍待实现。
+模块使用任意语言，统一由 Kubernetes Pod 启动镜像的 ENTRYPOINT/CMD，按需只读挂载固定 commit。`transport/module.py` 使用 HTTP 创建/查询/取消调用，使用 WebSocket 传输有序数据、显式 EOS 和声明暴露的 Trace；`transport/channels.py` 管理流式分发与字段完整性。模块私有协议及外部业务调用由模块代码封装。
+
+真实 Pod、恢复与取消收尾证据见 [实施记录](../../../../docs/voice-test-platform/16-完整实施记录.md) 和 `tests/kubernetes/`；整体完成状态仍受前端逐控件、视觉及最终 E2E 验收门槛约束。

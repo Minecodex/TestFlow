@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: testflow-migrate
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: testflow-migrate
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+      containers:
+        - name: migrate
+          image: testflow-server:0.1.0
+          command: [alembic, -c, /app/alembic.ini, upgrade, head]
+          envFrom:
+            - secretRef:
+                name: testflow-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi

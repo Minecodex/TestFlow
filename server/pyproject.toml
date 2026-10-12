@@ -13,10 +13,15 @@ dependencies = [
   "httpx>=0.28,<1",
   "websockets>=14,<17",
   "jsonschema>=4.23,<5",
+  "python-multipart>=0.0.20,<1",
+  "cryptography>=45,<48",
+  "argon2-cffi>=25,<26",
+  "kubernetes-asyncio>=33,<37",
+  "pillow>=12,<13",
 ]
 
 [dependency-groups]
-dev = ["pytest>=8,<10", "pytest-asyncio>=1,<2"]
+dev = ["pytest>=8,<10", "pytest-asyncio>=1,<2", "aiosqlite>=0.21,<1"]
 
 [build-system]
 requires = ["hatchling"]

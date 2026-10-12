@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class FeatureStatus(BaseModel):
     id: str
-    state: Literal["planned"] = "planned"
+    state: Literal["planned", "available"] = "planned"
 
 
 class SystemStatus(BaseModel):

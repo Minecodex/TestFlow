@@ -1,0 +1,16 @@
+{
+  "fields": [
+    {
+      "name": "answer",
+      "type": "Text",
+      "stream": true,
+      "format": "UTF-8"
+    },
+    {
+      "name": "evidence",
+      "type": "JSON",
+      "stream": false,
+      "format": "application/json"
+    }
+  ]
+}

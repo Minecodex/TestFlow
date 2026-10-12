@@ -20,7 +20,7 @@ def test_bootstrap_contract_and_storage(tmp_path: Path):
         assert all(feature["state"] == "planned" for feature in status["features"])
         assert (tmp_path / "assets").is_dir()
         assert (tmp_path / "module-packages").is_dir()
-        assert client.get("/api/v1/modules").status_code == 404
+        assert client.get("/api/v1/modules").status_code == 503
 
 
 def test_dependency_failure_affects_readiness_only(tmp_path: Path, monkeypatch):

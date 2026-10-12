@@ -1,0 +1,22 @@
+{
+  "fields": [
+    {
+      "name": "image",
+      "type": "Image",
+      "format": "Image/*",
+      "stream": false
+    },
+    {
+      "name": "caption",
+      "type": "Text",
+      "format": "UTF-8",
+      "stream": false
+    },
+    {
+      "name": "stats",
+      "type": "JSON",
+      "format": "application/json",
+      "stream": false
+    }
+  ]
+}

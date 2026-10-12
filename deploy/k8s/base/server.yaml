@@ -14,7 +14,8 @@ spec:
       labels:
         app: testflow-server
     spec:
-      automountServiceAccountToken: false
+      serviceAccountName: testflow-server
+      automountServiceAccountToken: true
       terminationGracePeriodSeconds: 30
       securityContext:
         runAsNonRoot: true
@@ -33,13 +34,17 @@ spec:
           envFrom:
             - configMapRef:
                 name: testflow-config
+            - secretRef:
+                name: testflow-secrets
           env:
-            - name: TESTFLOW_DATABASE_URL
+            - name: TESTFLOW_NAMESPACE
               valueFrom:
-                secretKeyRef:
-                  name: testflow-secrets
-                  key: database-url
-                  optional: true
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: TESTFLOW_BACKEND_NODE
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

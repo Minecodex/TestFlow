@@ -1,0 +1,27 @@
+{
+  "protocol": "testflow.module.v1",
+  "id": "audio-gain",
+  "name": "Audio gain",
+  "version": "1.0.2",
+  "description": "Real cross-language example module",
+  "inputs": "schemas/inputs.json",
+  "outputs": "schemas/outputs.json",
+  "parameters": "schemas/parameters.json",
+  "defaults": {
+    "gain": 1
+  },
+  "ui": "ui/config-panel.js",
+  "ui_sdk": "testflow.ui.v1",
+  "exposes_trace": true,
+  "runtime": {
+    "mode": "pod",
+    "image": "testflow/python-audio:v1.0.2-63c542f60231",
+    "port": 8080,
+    "code_mount": null,
+    "registry_credential_id": null,
+    "reuse_scope": "batch_node",
+    "requires_sequential": false,
+    "cpu": "500m",
+    "memory": "512Mi"
+  }
+}

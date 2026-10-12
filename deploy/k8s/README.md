@@ -1,50 +1,62 @@
-# Kubernetes 部署
+# Kubernetes 部署与验收
 
-当前部署两个组件：静态前端 Nginx 与一个 FastAPI 单体服务。业务 API、未来调度器和执行器都属于单体；没有独立 Worker。后端固定一个 Pod、一个 Uvicorn 进程，并使用 Recreate 策略挂载 RWO 数据卷。业务实现前不要通过增加副本实现执行并发。
+前端 Nginx、后端 FastAPI 单体、PostgreSQL 18 和动态模块 Pod 运行在同一 namespace。后端只有一个副本、一个 Uvicorn 进程；持久队列和任务领取使用数据库锁，DAG/案例并发在该进程内完成。
 
-## 构建与部署
+## Docker Desktop Kubernetes
 
-从仓库根目录执行：
+本地部署使用 Docker Desktop 内置 Kubernetes，`docker-desktop` 上下文，kind 模式、单节点。本机实测版本为 Kubernetes 1.36.1。独立 Minikube 已由此部署替代。
+
+首次启用：Docker Desktop → Kubernetes → Create cluster → kind → 1 个节点 → Create。镜像下载失败时先用 `docker desktop kubernetes images list` 核对所需镜像并重新拉取。仅对没有需要保留数据的失败集群执行 `docker desktop kubernetes reset-cluster`。
+
+```sh
+export PATH="/Applications/Docker.app/Contents/Resources/bin:$PATH"
+docker desktop kubernetes status
+kubectl --context=docker-desktop get nodes
+```
+
+Docker Desktop 管理 `$HOME/.kube/config`。部署、备份、恢复、端口转发和验收统一使用 `scripts/kubernetes_support.py`，每次命令显式指定 kubeconfig 与 context；macOS 默认选用 Docker Desktop 自带的 kubectl，避免旧 Homebrew 客户端版本偏差。其他集群通过 `--context`、`--kubeconfig` 和可选 `--kubectl` 指定，镜像需发布到该集群可访问的仓库。
+
+## 本地构建与部署
 
 ```sh
 docker build -f server/Dockerfile -t testflow-server:dev .
 docker build -f web/Dockerfile -t testflow-web:dev .
-kubectl kustomize deploy/k8s/overlays/development
+uv run --project server python scripts/module-package.py examples --version 1.0.2 --build
+uv run --project server python scripts/deploy-kubernetes.py --namespace testflow-dev --port 18765 --load-images
 ```
 
-先把镜像推到集群节点可访问的镜像仓库，并在 overlay 的 images 中设置 newName/newTag；若使用 kind，可用 `kind load docker-image testflow-server:dev testflow-web:dev --name <集群名>` 加载本地镜像。构建架构需匹配节点；跨架构使用 Docker buildx。清单依赖集群默认 StorageClass，若没有需在 storage.yaml 明确配置可用的 storageClassName。
+部署脚本只创建新的 `testflow-` namespace，拒绝覆盖现有 namespace，并等待数据库、迁移及前后端就绪。`--load-images` 将本地平台、PostgreSQL 和示例模块镜像按节点平台流式导入 Docker Desktop kind 节点的 containerd；服务不挂载 Docker socket。脚本生成数据库密码、admin 哈希和加密密钥，通过 stdin 创建 Secret；私有访问文件及集群连接信息保存在 `.data/kubernetes/<namespace>/access.json`，权限 0600，不提交到 Git。
 
 ```sh
-kubectl --context <集群上下文> apply -k deploy/k8s/overlays/development
-kubectl --context <集群上下文> -n testflow-dev rollout status deployment/testflow-server
-kubectl --context <集群上下文> -n testflow-dev rollout status deployment/testflow-web
-kubectl --context <集群上下文> -n testflow-dev port-forward service/testflow-web 8080:8080
+kubectl --context=docker-desktop -n testflow-dev get pods,services,pvc
+python3 scripts/port-forward.py --namespace testflow-dev --port 18765
 ```
 
-浏览器打开 http://127.0.0.1:8080。Nginx 同源转发 /api/ 至后端；SPA 深层地址刷新有效。Ingress 示例不默认安装，使用前替换域名、入口类并配置 TLS。
+浏览器访问 `http://127.0.0.1:18765`。初始 admin 密码从 `.data/kubernetes/testflow-dev/admin-initial-password` 读取（0600）。默认安装没有虚构执行或评分记录，示例 ZIP 按需导入并验证。
 
-production overlay 使用 testflow namespace 与 0.1.0 标签；构建时使用对应标签并设置镜像仓库，再 apply -k deploy/k8s/overlays/production。当前只有基础工程，production 是环境模板，业务能力和鉴权仍须后续完成。
+迁移 Job 执行 Alembic，后台调度器在数据库迁移就绪后启动。ConfigMap 的 PUBLIC_URL 必须匹配实际浏览器 origin；Nginx 同源转发 HTTP 与 WebSocket，支持媒体 Range 和 100 MiB 上传。
 
-## 配置与存储
+## 存储、身份和生产配置
 
-ConfigMap 管理环境及 /data 路径。PVC 保存 assets、module-packages、repositories、runs；当前只初始化目录，尚无业务写入。/tmp 使用 emptyDir，两个容器非 root，根文件系统只读。
+`testflow-data` PVC 保存包、固定代码、素材、采集及产物，PostgreSQL 使用独立 PVC。RWO 下挂载代码的模块 Pod 固定到后端节点；代码 mountPath 为用户声明的容器绝对目录，不覆盖镜像命令。
 
-数据库暂可不配置；首页会明确显示“未配置”。接入 PostgreSQL 时，由部署环境创建 testflow-secrets Secret 的 database-url 键，值采用 postgresql+asyncpg URL。不要将实际口令提交到仓库。配置后就绪探针会检查数据库连通性；schema 迁移后续由独立一次性 Job 执行，不在每个 API Pod 启动时自动建表。本清单不部署 PostgreSQL。
+后端 ServiceAccount 只获得当前 namespace 的 Pod 生命周期管理和镜像拉取 Secret 管理权限。模块使用无 Kubernetes token 的独立身份。镜像拉取凭据使用临时 dockerconfigjson Secret，明文不进入业务快照。
 
-/health/live 检查服务存活，/health/ready 检查数据目录可写及已配置数据库连通；前端 /healthz 检查 Nginx。后端不会将依赖异常正文暴露到健康响应中。
+生产使用 overlay 和 TLS Ingress，设置镜像仓库及平台镜像 digest、PUBLIC_URL、COOKIE_SECURE；Secret 提供 `TESTFLOW_DATABASE_URL`、`TESTFLOW_ADMIN_PASSWORD_HASH`、`TESTFLOW_ENCRYPTION_KEY`。加密密钥必须和数据库备份一起安全保存，否则凭据无法解密。生产模块必须固定 sha256 镜像；本地验收允许不可变开发标签并核对 imageID。
 
-## 当前边界
+依赖默认 StorageClass；无默认值时明确填写 storageClassName。平台和模块容器按非 root、只读根文件系统运行，临时文件使用 emptyDir。后端具备 Git、SSH 和 FFmpeg；不挂载 Docker socket。
 
-这是可运行的基础工程；admin 鉴权、业务持久化、ZIP 加载、仓库同步、DAG 执行和模块启动尚未实现。Kubernetes 只负责部署平台。Pod 内的“本地启动”及 Docker 模块运行所需隔离、网络、卷和生命周期接入，将随执行器实现确定；当前不挂载宿主机 Docker Socket，也不要求平台业务接口带 Kubernetes 参数。
-
-验证记录见 ../../README.md。实际集群部署需可访问的集群、镜像和 StorageClass；本轮本机已有集群连接超时，未宣称完成集群 rollout。
-
-安装 kubeconform 后可重复不连接集群的 Schema 校验：
+## 验收与故障
 
 ```sh
-kubectl kustomize deploy/k8s/overlays/development | kubeconform -strict -summary -kubernetes-version 1.35.0
-kubectl kustomize deploy/k8s/overlays/production | kubeconform -strict -summary -kubernetes-version 1.35.0
-kubeconform -strict -summary -kubernetes-version 1.35.0 deploy/k8s/examples/ingress.yaml
+uv run --project server python scripts/deploy-kubernetes.py --namespace testflow-e2e-<run-id> --port 18767 --load-images
+uv run --project server python tests/kubernetes/acceptance.py --namespace testflow-e2e-<run-id>
 ```
 
-Schema 校验不能替代实际集群的服务端准入、镜像拉取和卷供应验证。
+先等待迁移与 rollout，再 port-forward。验收执行真实 Git、ZIP、临时验证 Pod、三语言处理、流式输入输出、Trace、规则、Kimi 真实评分、重跑与旧报告。真实服务凭据读取已有加密凭据引用，证据不保存正文。浏览器交互和视觉检查另行执行，API 验收不能替代这些关卡。
+
+运行证据保存在 `.data/acceptance/`，实施状态见 `docs/voice-test-platform/16-完整实施记录.md`。保存证据后只删除本次测试 namespace；保留用户正常部署与 Docker Desktop 集群。
+
+镜像拉取失败查看 Pod Events；准备失败核对 health/contract 和实际 imageID；节点超时与收尾超时在执行详情分开显示。后台重启保留已确定终态，实际运行中断标记 interrupted，剩余未开始项继续，已经运行的调用不会自动重试。删除 Pod 的控制面证据和实际远端停止证据分开记录。
+
+备份使用 `scripts/backup-kubernetes.py --namespace testflow-dev`，同时保存数据库、PVC 和加密密钥；目录 0700、敏感文件 0600。恢复使用 `scripts/restore-kubernetes.py --namespace <空的 testflow- namespace> --backup <备份目录>`，拒绝覆盖存在资源或执行记录的目标，保留源 admin 密码与加密凭据。恢复后的访问文件始终指向目标集群。恢复验收见配套脚本与实施记录。未经实测的浏览器/视觉/恢复关卡不标记通过。

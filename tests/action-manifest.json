@@ -1,0 +1,1803 @@
+[
+  {
+    "id": "about",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:about",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "009-normal-about"
+      ],
+      "alternate": [
+        "011-boundary-about"
+      ]
+    }
+  },
+  {
+    "id": "add-case",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:add-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "059-normal-add-case"
+      ],
+      "alternate": [
+        "060-boundary-add-case"
+      ]
+    }
+  },
+  {
+    "id": "add-node",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:add-node",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "095-normal-add-node"
+      ],
+      "alternate": [
+        "105-boundary-add-node"
+      ]
+    }
+  },
+  {
+    "id": "add-pair",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:add-pair",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "125-normal-add-pair"
+      ],
+      "alternate": [
+        "126-negative-add-pair"
+      ]
+    }
+  },
+  {
+    "id": "assembly-schema",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:assembly-schema",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "096-normal-assembly-schema"
+      ],
+      "alternate": [
+        "097-negative-assembly-schema"
+      ]
+    }
+  },
+  {
+    "id": "asset-detail",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "media/upload、media/{id}、assets",
+    "test": "tests/platform-controls.spec.mjs:asset-detail",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "034-normal-asset-detail"
+      ],
+      "alternate": [
+        "033-boundary-asset-detail"
+      ]
+    }
+  },
+  {
+    "id": "cancel-case",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions/{id}/cancel、终态及收尾",
+    "test": "tests/platform-controls.spec.mjs:cancel-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "154-normal-cancel-case"
+      ],
+      "alternate": [
+        "155-boundary-cancel-case"
+      ]
+    }
+  },
+  {
+    "id": "cancel-task",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:cancel-task",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "136-normal-cancel-task"
+      ],
+      "alternate": [
+        "135-boundary-cancel-task"
+      ]
+    }
+  },
+  {
+    "id": "clear-history",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:clear-history",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "143-normal-clear-history"
+      ],
+      "alternate": [
+        "144-boundary-clear-history"
+      ]
+    }
+  },
+  {
+    "id": "close-drawer",
+    "domain": "global",
+    "implementation": "web/src/shared/ui/index.tsx",
+    "api": "本地界面状态、提交保护与焦点返回",
+    "test": "tests/platform-controls.spec.mjs:close-drawer",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "035-normal-close-drawer"
+      ],
+      "alternate": [
+        "033-boundary-asset-detail"
+      ]
+    }
+  },
+  {
+    "id": "close-modal",
+    "domain": "global",
+    "implementation": "web/src/shared/ui/index.tsx",
+    "api": "本地界面状态、提交保护与焦点返回",
+    "test": "tests/platform-controls.spec.mjs:close-modal",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "010-normal-close-modal"
+      ],
+      "alternate": [
+        "011-boundary-about"
+      ]
+    }
+  },
+  {
+    "id": "confirm-edge-delete",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:confirm-edge-delete",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "086-normal-remove-edge"
+      ],
+      "alternate": [
+        "085-boundary-remove-edge"
+      ]
+    }
+  },
+  {
+    "id": "confirm-hide",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:confirm-hide",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "026-normal-hide-resource"
+      ],
+      "alternate": [
+        "025-boundary-hide-resource"
+      ]
+    }
+  },
+  {
+    "id": "connect-in",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:connect-in",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "099-normal-connect-out"
+      ],
+      "alternate": [
+        "100-negative-connect-out"
+      ]
+    }
+  },
+  {
+    "id": "connect-out",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:connect-out",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "099-normal-connect-out"
+      ],
+      "alternate": [
+        "100-negative-connect-out"
+      ]
+    }
+  },
+  {
+    "id": "dataset-back",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:dataset-back",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "068-normal-dataset-back"
+      ],
+      "alternate": [
+        "069-negative-dataset-detail"
+      ]
+    }
+  },
+  {
+    "id": "dataset-batch-add",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:dataset-batch-add",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "055-normal-dataset-batch-add"
+      ],
+      "alternate": [
+        "044-boundary-schema-add"
+      ]
+    }
+  },
+  {
+    "id": "dataset-create",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:dataset-create",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "057-normal-dataset-create"
+      ],
+      "alternate": [
+        "066-negative-edit-dataset"
+      ]
+    }
+  },
+  {
+    "id": "dataset-detail",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:dataset-detail",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "058-normal-dataset-detail"
+      ],
+      "alternate": [
+        "069-negative-dataset-detail"
+      ]
+    }
+  },
+  {
+    "id": "dataset-next",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:dataset-next",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "048-normal-dataset-next"
+      ],
+      "alternate": [
+        "040-negative-new-dataset"
+      ]
+    }
+  },
+  {
+    "id": "dataset-prev",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:dataset-prev",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "056-normal-dataset-prev"
+      ],
+      "alternate": [
+        "042-boundary-schema-up"
+      ]
+    }
+  },
+  {
+    "id": "disconnect-node",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:disconnect-node",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "093-normal-disconnect-node"
+      ],
+      "alternate": [
+        "094-boundary-disconnect-node"
+      ]
+    }
+  },
+  {
+    "id": "draft-add-case",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:draft-add-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "050-normal-draft-add-case"
+      ],
+      "alternate": [
+        "049-negative-draft-add-case",
+        "051-boundary-draft-add-case"
+      ]
+    }
+  },
+  {
+    "id": "draft-edit-case",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:draft-edit-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "052-normal-draft-edit-case"
+      ],
+      "alternate": [
+        "053-boundary-draft-edit-case"
+      ]
+    }
+  },
+  {
+    "id": "draft-remove-case",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:draft-remove-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "054-normal-draft-remove-case"
+      ],
+      "alternate": [
+        "064-boundary-remove-case"
+      ]
+    }
+  },
+  {
+    "id": "edit-case",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:edit-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "062-normal-edit-case"
+      ],
+      "alternate": [
+        "061-negative-edit-case"
+      ]
+    }
+  },
+  {
+    "id": "edit-dataset",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:edit-dataset",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "067-normal-edit-dataset"
+      ],
+      "alternate": [
+        "066-negative-edit-dataset"
+      ]
+    }
+  },
+  {
+    "id": "edit-profile",
+    "domain": "evaluation",
+    "implementation": "web/src/features/evaluation/page.tsx",
+    "api": "evaluation-profiles、credentials",
+    "test": "tests/platform-controls.spec.mjs:edit-profile",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "075-normal-edit-profile"
+      ],
+      "alternate": [
+        "074-negative-edit-profile"
+      ]
+    }
+  },
+  {
+    "id": "edit-repo",
+    "domain": "repositories",
+    "implementation": "web/src/features/repositories/page.tsx",
+    "api": "repositories、operations",
+    "test": "tests/platform-controls.spec.mjs:edit-repo",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "004-normal-edit-repo"
+      ],
+      "alternate": [
+        "005-negative-edit-repo"
+      ]
+    }
+  },
+  {
+    "id": "end-guide",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:end-guide",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "017-normal-end-guide"
+      ],
+      "alternate": [
+        "018-boundary-end-guide"
+      ]
+    }
+  },
+  {
+    "id": "execution-back",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:execution-back",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "142-normal-execution-back"
+      ],
+      "alternate": [
+        "146-boundary-execution-back"
+      ]
+    }
+  },
+  {
+    "id": "execution-detail",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:execution-detail",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "137-normal-execution-detail"
+      ],
+      "alternate": [
+        "145-negative-execution-detail"
+      ]
+    }
+  },
+  {
+    "id": "execution-tab",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:execution-tab",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "138-normal-execution-tab"
+      ],
+      "alternate": [
+        "139-boundary-execution-tab"
+      ]
+    }
+  },
+  {
+    "id": "export-execution",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:export-execution",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "140-normal-export-execution"
+      ],
+      "alternate": [
+        "141-boundary-export-execution"
+      ]
+    }
+  },
+  {
+    "id": "export-flow",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:export-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "104-normal-export-flow"
+      ],
+      "alternate": [
+        "108-boundary-export-flow"
+      ]
+    }
+  },
+  {
+    "id": "fit-canvas",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:fit-canvas",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "084-normal-fit-canvas"
+      ],
+      "alternate": [
+        "109-boundary-fit-canvas"
+      ]
+    }
+  },
+  {
+    "id": "flow-list",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:flow-list",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "080-normal-flow-list"
+      ],
+      "alternate": [
+        "108-boundary-export-flow"
+      ]
+    }
+  },
+  {
+    "id": "flow-schema",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:flow-schema",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "090-normal-flow-schema"
+      ],
+      "alternate": [
+        "091-negative-flow-schema"
+      ]
+    }
+  },
+  {
+    "id": "guide",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:guide",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "012-normal-guide"
+      ],
+      "alternate": [
+        "013-boundary-guide"
+      ]
+    }
+  },
+  {
+    "id": "guide-next",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:guide-next",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "014-normal-guide-next"
+      ],
+      "alternate": [
+        "016-boundary-guide-next"
+      ]
+    }
+  },
+  {
+    "id": "guide-prev",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:guide-prev",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "015-normal-guide-prev"
+      ],
+      "alternate": [
+        "013-boundary-guide"
+      ]
+    }
+  },
+  {
+    "id": "hidden-resources",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:hidden-resources",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "027-normal-hidden-resources"
+      ],
+      "alternate": [
+        "028-boundary-hidden-resources"
+      ]
+    }
+  },
+  {
+    "id": "hide-resource",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:hide-resource",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "026-normal-hide-resource"
+      ],
+      "alternate": [
+        "025-boundary-hide-resource"
+      ]
+    }
+  },
+  {
+    "id": "import-asset",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "media/upload、media/{id}、assets",
+    "test": "tests/platform-controls.spec.mjs:import-asset",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "037-normal-import-asset"
+      ],
+      "alternate": [
+        "036-boundary-import-asset"
+      ]
+    }
+  },
+  {
+    "id": "import-module",
+    "domain": "modules",
+    "implementation": "web/src/features/modules/page.tsx",
+    "api": "modules/import、validate、files、operations",
+    "test": "tests/platform-controls.spec.mjs:import-module",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "116-normal-import-module"
+      ],
+      "alternate": [
+        "115-negative-import-module"
+      ]
+    }
+  },
+  {
+    "id": "mobile-menu",
+    "domain": "excluded",
+    "reason": "桌面 Web 范围明确排除移动端",
+    "status": "excluded_desktop_scope",
+    "evidence": "AGENTS.md:正式体验仅桌面 Web"
+  },
+  {
+    "id": "module-detail",
+    "domain": "modules",
+    "implementation": "web/src/features/modules/page.tsx",
+    "api": "modules/import、validate、files、operations",
+    "test": "tests/platform-controls.spec.mjs:module-detail",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "117-normal-module-detail"
+      ],
+      "alternate": [
+        "120-negative-module-detail"
+      ]
+    }
+  },
+  {
+    "id": "module-spec",
+    "domain": "modules",
+    "implementation": "web/src/features/modules/page.tsx",
+    "api": "modules/import、validate、files、operations",
+    "test": "tests/platform-controls.spec.mjs:module-spec",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "118-normal-module-spec"
+      ],
+      "alternate": [
+        "119-boundary-module-spec"
+      ]
+    }
+  },
+  {
+    "id": "module-to-flow",
+    "domain": "modules",
+    "implementation": "web/src/features/modules/page.tsx",
+    "api": "modules/import、validate、files、operations",
+    "test": "tests/platform-controls.spec.mjs:module-to-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "121-normal-module-to-flow"
+      ],
+      "alternate": [
+        "122-boundary-module-to-flow"
+      ]
+    }
+  },
+  {
+    "id": "new-dataset",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:new-dataset",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "041-normal-new-dataset"
+      ],
+      "alternate": [
+        "040-negative-new-dataset"
+      ]
+    }
+  },
+  {
+    "id": "new-flow",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:new-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "079-normal-new-flow"
+      ],
+      "alternate": [
+        "077-negative-new-flow",
+        "078-negative-new-flow"
+      ]
+    }
+  },
+  {
+    "id": "new-profile",
+    "domain": "evaluation",
+    "implementation": "web/src/features/evaluation/page.tsx",
+    "api": "evaluation-profiles、credentials",
+    "test": "tests/platform-controls.spec.mjs:new-profile",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "071-normal-new-profile"
+      ],
+      "alternate": [
+        "070-negative-new-profile"
+      ]
+    }
+  },
+  {
+    "id": "new-repo",
+    "domain": "repositories",
+    "implementation": "web/src/features/repositories/page.tsx",
+    "api": "repositories、operations",
+    "test": "tests/platform-controls.spec.mjs:new-repo",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "002-normal-new-repo"
+      ],
+      "alternate": [
+        "001-negative-new-repo"
+      ]
+    }
+  },
+  {
+    "id": "new-task",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:new-task",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "129-normal-new-task"
+      ],
+      "alternate": [
+        "123-negative-new-task"
+      ]
+    }
+  },
+  {
+    "id": "new-text-asset",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "assets",
+    "test": "tests/platform-controls.spec.mjs:new-text-asset",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "032-normal-new-text-asset"
+      ],
+      "alternate": [
+        "031-negative-new-text-asset"
+      ]
+    }
+  },
+  {
+    "id": "open-flow",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:open-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "080-normal-flow-list"
+      ],
+      "alternate": [
+        "114-negative-open-flow"
+      ]
+    }
+  },
+  {
+    "id": "play-audio",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "media/upload、media/{id}、assets",
+    "test": "tests/platform-controls.spec.mjs:play-audio",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "038-normal-play-audio"
+      ],
+      "alternate": [
+        "039-negative-play-audio"
+      ]
+    }
+  },
+  {
+    "id": "quick-run",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:quick-run",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "111-normal-quick-run"
+      ],
+      "alternate": [
+        "110-negative-quick-run"
+      ]
+    }
+  },
+  {
+    "id": "record-asset",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "media/upload、media/{id}、assets",
+    "test": "tests/platform.e2e.mjs:assets",
+    "status": "unverified_microphone_per_user",
+    "evidence": "用户明确要求暂不使用麦克风，保留未验收"
+  },
+  {
+    "id": "reevaluate-execution",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:reevaluate-execution",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "153-normal-reevaluate-execution"
+      ],
+      "alternate": [
+        "152-negative-reevaluate-execution"
+      ]
+    }
+  },
+  {
+    "id": "refresh-view",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:refresh-view",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "019-normal-refresh-view"
+      ],
+      "alternate": [
+        "020-negative-refresh-view"
+      ]
+    }
+  },
+  {
+    "id": "remove-case",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:remove-case",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "065-normal-remove-case"
+      ],
+      "alternate": [
+        "063-negative-remove-case",
+        "064-boundary-remove-case"
+      ]
+    }
+  },
+  {
+    "id": "remove-edge",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:remove-edge",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "086-normal-remove-edge"
+      ],
+      "alternate": [
+        "085-boundary-remove-edge"
+      ]
+    }
+  },
+  {
+    "id": "remove-node",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:remove-node",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "106-normal-remove-node"
+      ],
+      "alternate": [
+        "105-boundary-add-node"
+      ]
+    }
+  },
+  {
+    "id": "remove-pair",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:remove-pair",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "127-normal-remove-pair"
+      ],
+      "alternate": [
+        "124-boundary-remove-pair"
+      ]
+    }
+  },
+  {
+    "id": "repo-versions",
+    "domain": "repositories",
+    "implementation": "web/src/features/repositories/page.tsx",
+    "api": "repositories、operations",
+    "test": "tests/platform-controls.spec.mjs:repo-versions",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "007-normal-repo-versions"
+      ],
+      "alternate": [
+        "008-boundary-repo-versions"
+      ]
+    }
+  },
+  {
+    "id": "rerun-execution",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:rerun-execution",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "151-normal-rerun-execution"
+      ],
+      "alternate": [
+        "150-negative-rerun-execution"
+      ]
+    }
+  },
+  {
+    "id": "restore-resource",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:restore-resource",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "030-normal-restore-resource"
+      ],
+      "alternate": [
+        "029-boundary-restore-resource"
+      ]
+    }
+  },
+  {
+    "id": "revert-flow",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:revert-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "088-normal-revert-flow"
+      ],
+      "alternate": [
+        "089-boundary-revert-flow"
+      ]
+    }
+  },
+  {
+    "id": "save-assembly-schema",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:save-assembly-schema",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "098-normal-save-assembly-schema"
+      ],
+      "alternate": [
+        "097-negative-assembly-schema"
+      ]
+    }
+  },
+  {
+    "id": "save-flow",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:save-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "103-normal-save-flow"
+      ],
+      "alternate": [
+        "102-negative-save-flow"
+      ]
+    }
+  },
+  {
+    "id": "save-flow-schema",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:save-flow-schema",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "092-normal-save-flow-schema"
+      ],
+      "alternate": [
+        "091-negative-flow-schema"
+      ]
+    }
+  },
+  {
+    "id": "schema-add",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:schema-add",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "043-normal-schema-add"
+      ],
+      "alternate": [
+        "044-boundary-schema-add"
+      ]
+    }
+  },
+  {
+    "id": "schema-remove",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:schema-remove",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "046-normal-schema-remove"
+      ],
+      "alternate": [
+        "047-boundary-schema-remove"
+      ]
+    }
+  },
+  {
+    "id": "schema-up",
+    "domain": "datasets",
+    "implementation": "web/src/features/datasets/page.tsx",
+    "api": "datasets、assets、versions",
+    "test": "tests/platform-controls.spec.mjs:schema-up",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "045-normal-schema-up"
+      ],
+      "alternate": [
+        "042-boundary-schema-up"
+      ]
+    }
+  },
+  {
+    "id": "search",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:search",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "021-normal-search"
+      ],
+      "alternate": [
+        "022-boundary-search"
+      ]
+    }
+  },
+  {
+    "id": "search-execution",
+    "domain": "global",
+    "implementation": "web/src/layouts/workspace-layout.tsx",
+    "api": "system/search、auth、hide/restore",
+    "test": "tests/platform-controls.spec.mjs:search-execution",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "023-normal-search-execution"
+      ],
+      "alternate": [
+        "024-negative-search-execution"
+      ]
+    }
+  },
+  {
+    "id": "select-profile",
+    "domain": "evaluation",
+    "implementation": "web/src/features/evaluation/page.tsx",
+    "api": "evaluation-profiles、credentials",
+    "test": "tests/platform-controls.spec.mjs:select-profile",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "072-normal-select-profile"
+      ],
+      "alternate": [
+        "073-negative-select-profile"
+      ]
+    }
+  },
+  {
+    "id": "start-record",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "media/upload、media/{id}、assets",
+    "test": "tests/platform.e2e.mjs:assets",
+    "status": "unverified_microphone_per_user",
+    "evidence": "用户明确要求暂不使用麦克风，保留未验收"
+  },
+  {
+    "id": "stop-record",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/page.tsx",
+    "api": "media/upload、media/{id}、assets",
+    "test": "tests/platform.e2e.mjs:assets",
+    "status": "unverified_microphone_per_user",
+    "evidence": "用户明确要求暂不使用麦克风，保留未验收"
+  },
+  {
+    "id": "sync-repo",
+    "domain": "repositories",
+    "implementation": "web/src/features/repositories/page.tsx",
+    "api": "repositories、operations",
+    "test": "tests/platform-controls.spec.mjs:sync-repo",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "003-normal-sync-repo"
+      ],
+      "alternate": [
+        "006-negative-sync-repo"
+      ]
+    }
+  },
+  {
+    "id": "task-back",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:task-back",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "131-normal-task-back"
+      ],
+      "alternate": [
+        "134-boundary-task-back"
+      ]
+    }
+  },
+  {
+    "id": "task-detail",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:task-detail",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "130-normal-task-detail"
+      ],
+      "alternate": [
+        "132-negative-task-detail"
+      ]
+    }
+  },
+  {
+    "id": "task-history",
+    "domain": "tasks",
+    "implementation": "web/src/features/tasks/page.tsx",
+    "api": "tasks/preview、tasks、cancel、reports",
+    "test": "tests/platform-controls.spec.mjs:task-history",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "133-normal-task-history"
+      ],
+      "alternate": [
+        "134-boundary-task-back"
+      ]
+    }
+  },
+  {
+    "id": "trace-node",
+    "domain": "executions",
+    "implementation": "web/src/features/executions/page.tsx",
+    "api": "executions、events、rerun、reevaluate",
+    "test": "tests/platform-controls.spec.mjs:trace-node",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "147-normal-trace-node"
+      ],
+      "alternate": [
+        "148-boundary-trace-node"
+      ]
+    }
+  },
+  {
+    "id": "validate-flow",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:validate-flow",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "101-normal-validate-flow"
+      ],
+      "alternate": [
+        "087-negative-validate-flow"
+      ]
+    }
+  },
+  {
+    "id": "zoom-in",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:zoom-in",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "081-normal-zoom-in"
+      ],
+      "alternate": [
+        "083-boundary-zoom-in"
+      ]
+    }
+  },
+  {
+    "id": "zoom-out",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines、validate、executions/quick",
+    "test": "tests/platform-controls.spec.mjs:zoom-out",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "082-normal-zoom-out"
+      ],
+      "alternate": [
+        "083-boundary-zoom-in"
+      ]
+    }
+  }
+]

@@ -46,11 +46,11 @@ def main():
             raise RuntimeError("Containers did not become available")
         assert json.loads(body)["architecture"] == "monolith"
         assert json.loads(response(origin + "/healthz")[2]) == {"status": "ok"}
-        for route in ("/", "/modules", "/test-tasks", "/missing-foundation-page"):
+        for route in ("/", "/repositories", "/modules", "/assets?q=test", "/assets/fixture", "/datasets", "/pipelines", "/evaluation-profiles", "/test-tasks", "/executions", "/missing-foundation-page"):
             assert b'<div id="root"></div>' in response(origin + route)[2], route
         assert response(origin + "/index.html")[1]["Cache-Control"] == "no-store"
         try:
-            response(origin + "/assets/missing.js")
+            response(origin + "/static/missing.js")
             raise AssertionError("Missing static asset must return 404")
         except HTTPError as error:
             assert error.code == 404
