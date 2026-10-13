@@ -15,6 +15,7 @@ import {
   type Edge,
   type EdgeProps,
   useReactFlow,
+  useNodesInitialized,
   useViewport,
 } from "@xyflow/react";
 import {
@@ -30,6 +31,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
@@ -135,27 +137,38 @@ function Surface({
 }) {
   const t = useMessages();
   const flow = useReactFlow();
+  const initialized = useNodesInitialized();
+  const [measurements, setMeasurements] = useState(() => new Map<string, FlowNode["measured"]>());
   const previousCount = useRef(value.nodes.length);
   useEffect(() => {
     if (value.nodes.length > previousCount.current) {
+      if (!initialized) return;
       const frame = requestAnimationFrame(() => {
+        previousCount.current = value.nodes.length;
         void flow.fitView({ padding: 0.15 });
       });
-      previousCount.current = value.nodes.length;
       return () => cancelAnimationFrame(frame);
     }
     previousCount.current = value.nodes.length;
-  }, [value.nodes.length, flow]);
+  }, [value.nodes.length, flow, initialized]);
+  useEffect(() => {
+    const ids = new Set(value.nodes.map(node => node.id));
+    setMeasurements(previous => {
+      const next = new Map([...previous].filter(([id]) => ids.has(id)));
+      return next.size === previous.size ? previous : next;
+    });
+  }, [value.nodes]);
   const nodes: FlowNode[] = useMemo(
     () =>
       value.nodes.map((node) => ({
         id: node.id,
         type: "module",
         position: { x: node.x || 0, y: node.y || 0 },
+        measured: measurements.get(node.id),
         data: { node, remove: onRemoveNode },
         selected: node.id === selected,
       })),
-    [value.nodes, selected, onRemoveNode],
+    [value.nodes, selected, onRemoveNode, measurements],
   );
   const edges = value.edges.map((e) => ({
     id: e.source + "::" + e.target,
@@ -203,6 +216,21 @@ function Surface({
     return b.kind === "assembly" || matching(a.output_schema, b.input_schema);
   };
   const changeNodes = (changes: NodeChange<FlowNode>[]) => {
+    // Measurements belong to the view, and must survive controlled-node updates.
+    if (changes.some(change => change.type === "dimensions")) {
+      setMeasurements(previous => {
+        const next = new Map(previous);
+        let changed = false;
+        for (const change of changes) {
+          if (change.type !== "dimensions" || !change.dimensions) continue;
+          const old = previous.get(change.id);
+          if (old?.width === change.dimensions.width && old?.height === change.dimensions.height) continue;
+          next.set(change.id, change.dimensions);
+          changed = true;
+        }
+        return changed ? next : previous;
+      });
+    }
     const updated = applyNodeChanges(changes, nodes);
     if (changes.some((c) => c.type === "position"))
       onChange({
