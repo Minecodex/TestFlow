@@ -1,0 +1,10 @@
+{
+  "fields": [
+    {
+      "name": "audio",
+      "type": "Audio",
+      "format": "WAV · 16kHz · Mono",
+      "stream": false
+    }
+  ]
+}

@@ -10,3 +10,20 @@
 /.codegraph/.gitignore
 /.codegraph/.gitignore
 /.idea/mode_test_platform.iml
+
+# Application dependencies, build output and local configuration
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.data/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+test-results/
+playwright-report/
+/.idea/TestFlow.iml

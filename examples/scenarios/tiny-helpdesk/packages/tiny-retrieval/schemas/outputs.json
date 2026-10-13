@@ -1,0 +1,16 @@
+{
+  "fields": [
+    {
+      "name": "query",
+      "type": "Text",
+      "stream": false,
+      "format": "UTF-8"
+    },
+    {
+      "name": "context",
+      "type": "JSON",
+      "stream": false,
+      "format": "application/json"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "fields": [
+    {
+      "name": "image",
+      "type": "Image",
+      "format": "Image/*",
+      "stream": false
+    }
+  ]
+}

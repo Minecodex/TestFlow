@@ -1,0 +1,39 @@
+{
+  "format": "testflow.dataset.v1",
+  "assets": [
+    {
+      "key": "voice",
+      "name": "Helpdesk example · question.wav",
+      "type": "Audio",
+      "format": "WAV · 16kHz · Mono",
+      "sha256": "ea93ca8dc6c70f5fa9aa9dedad89e1b65fc6d7dda18e5e49695b35fdb72479ba",
+      "revision_digest": "2ef199b248503fb65eee5a112a48fe47f4bfcb7f8f162ec1abd99e8c57d23982"
+    }
+  ],
+  "dataset": {
+    "name": "GitHub example case · voice",
+    "description": "Fixed synthetic inputs; pairs with GitHub example · voice",
+    "input_schema": {
+      "fields": [
+        {
+          "name": "audio",
+          "type": "Audio",
+          "format": "WAV · 16kHz · Mono",
+          "stream": false
+        }
+      ]
+    },
+    "cases": [
+      {
+        "key": "refund",
+        "name": "Refund policy · voice",
+        "inputs": {
+          "audio": {
+            "value": null,
+            "asset_key": "voice"
+          }
+        }
+      }
+    ]
+  }
+}

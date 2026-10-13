@@ -1,0 +1,176 @@
+.testflow-resource-card {
+  padding: var(--testflow-px-22);
+}
+.testflow-resource-title {
+  font-size: var(--testflow-px-16);
+  letter-spacing: var(--testflow-letter-heading);
+}
+.testflow-resource-description {
+  font-size: var(--testflow-px-11);
+  color: var(--testflow-muted);
+  margin-top: var(--testflow-px-6);
+}
+.testflow-resource-actions {
+  margin-top: var(--testflow-px-20);
+  padding-top: var(--testflow-px-16);
+  border-top: var(--testflow-px-1) solid var(--testflow-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--testflow-px-10);
+}
+.testflow-resource-actions .testflow-row {
+  gap: var(--testflow-px-5);
+}
+.testflow-schema-section {
+  margin-top: var(--testflow-px-20);
+}
+.testflow-schema-section .testflow-eyebrow {
+  margin-bottom: var(--testflow-px-8);
+}
+.testflow-chip small {
+  font-size: inherit;
+}
+.testflow-sidebar .testflow-account {
+  height: auto;
+  padding: 0;
+  justify-content: flex-start;
+  text-align: left;
+  line-height: 1.6;
+  border: 0;
+  color: var(--testflow-text);
+  font-size: var(--testflow-px-13);
+}
+.testflow-account-copy {
+  display: block;
+}
+.testflow-account-copy > span { display: block; font-size: var(--testflow-px-11); }
+.testflow-module-card > .testflow-card-header {
+  align-items: center;
+  margin-bottom: var(--testflow-px-12);
+}
+.testflow-module-description {
+  margin-top: var(--testflow-px-13);
+  min-height: var(--testflow-px-36);
+  font-size: var(--testflow-px-11);
+  color: var(--testflow-muted);
+}
+.testflow-module-line > svg {
+  color: var(--testflow-muted);
+  width: var(--testflow-px-17);
+}
+.testflow-btn.testflow-link {
+  height: auto;
+  padding: 0;
+  border: 0;
+  min-height: 0;
+  background: none;
+  color: var(--testflow-accent);
+  font-size: var(--testflow-px-11);
+  font-weight: 550;
+  line-height: 1.6;
+}
+.testflow-audio-hidden { display: none; }
+.testflow-asset-thumb { display: inline; vertical-align: baseline; }
+.testflow-btn.testflow-play-button {
+  width: var(--testflow-px-27);
+  height: var(--testflow-px-27);
+  padding: 0;
+  border-radius: 50%;
+  background: var(--testflow-accent-soft);
+  color: var(--testflow-accent);
+}
+.testflow-btn.testflow-play-button svg { width: var(--testflow-px-12); height: var(--testflow-px-12); }
+.testflow-material-summary { max-width: var(--testflow-px-250); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.testflow-asset-filters .testflow-field { max-width: var(--testflow-px-230); }
+.testflow-asset-filters .testflow-field > [data-slot="label"] { display: none; }
+.testflow-asset-filters .testflow-field { flex: 0 0 auto; width: auto; }
+.testflow-asset-filters .textfield { width: var(--testflow-px-230); }
+.testflow-asset-filters .testflow-row { gap: var(--testflow-px-8); }
+.testflow-asset-filters .testflow-small { white-space: nowrap; }
+.testflow-profile-active { border-color: var(--testflow-color-afc79d); }
+.testflow-btn.testflow-profile-name { color: var(--testflow-card-choice-text); }
+.testflow-btn.testflow-profile-name { display: block; font-size: var(--testflow-px-16); font-weight: 650; letter-spacing: var(--testflow-letter-heading); }
+.testflow-history-filters { justify-content: flex-start; gap: var(--testflow-px-8); }
+.testflow-history-filters > .testflow-field { width: fit-content; }
+.testflow-history-filters .testflow-field > [data-slot="label"] { display: none; }
+.testflow-history-filters .textfield { min-width: var(--testflow-px-230); }
+.testflow-history-filters .testflow-input { font-size: var(--testflow-px-11); }
+.testflow-btn.testflow-cell-title { display: block; font-size: var(--testflow-px-12); color: var(--testflow-color-3c5242); text-align: left; white-space: normal; }
+.testflow-icon { width: var(--testflow-icon-size); height: var(--testflow-icon-size); flex-shrink: 0; }
+.testflow-btn.testflow-hidden-link { padding: 0; height: auto; border: 0; color: var(--testflow-accent); font-size: var(--testflow-px-10); line-height: 1.6; margin: var(--testflow-px-12) 0; }
+.testflow-breadcrumb-domain { font-size: var(--testflow-px-8); letter-spacing: var(--testflow-px-1_8); margin-left: var(--testflow-px-4); }
+.testflow-topbar kbd { font-family: var(--testflow-mono); font-size: var(--testflow-px-9); padding: var(--testflow-px-1) var(--testflow-px-4); border: var(--testflow-px-1) solid var(--testflow-line); border-radius: var(--testflow-px-4); }
+.testflow-btn.testflow-topbar-search { border: 0; padding: var(--testflow-px-1) var(--testflow-px-6); height: auto; font-size: var(--testflow-px-11); font-weight: 400; line-height: 1.6; color: var(--testflow-color-98a298); gap: var(--testflow-px-9); }
+.testflow-topbar-search > span:first-child svg { display: inline-block; vertical-align: middle; }
+
+.testflow-assets-table table, .testflow-history-table table { table-layout: fixed; }
+.testflow-assets-table td { height: var(--testflow-asset-row-height); }
+.testflow-history-table td { height: auto; }
+.testflow-history-table .testflow-row-subtitle { margin-top: var(--testflow-px-4); font-size: var(--testflow-px-10); color: var(--testflow-muted); }
+.testflow-history-filters > .testflow-link { margin-left: auto; }
+
+:is(.testflow-asset-filters,.testflow-history-filters) input.testflow-input { height: calc(var(--testflow-px-11) * 1.5 + var(--testflow-px-18)); }
+
+.testflow-history-table table { min-width: var(--testflow-history-table-width); }
+.testflow-history-table .testflow-badge { overflow-wrap: normal; word-break: normal; white-space: nowrap; }
+
+.testflow-profile-card > .testflow-card-header { margin-bottom: 0; }
+.testflow-profile-card > .testflow-row .testflow-btn { height: auto; padding: 0; border: 0; background: none; }
+.testflow-definition-row { display: grid; grid-template-columns: var(--testflow-px-120) minmax(0,1fr); gap: var(--testflow-px-10); padding: var(--testflow-px-10) 0; border-bottom: var(--testflow-px-1) solid var(--testflow-line); font-size: var(--testflow-px-11); }
+.testflow-definition-row > :first-child { color: var(--testflow-color-a0ad91); }
+.testflow-definition-row:last-child { border-bottom: 0; }
+.testflow-eval-model > .testflow-panel-body { padding: var(--testflow-px-20) var(--testflow-px-22); }
+
+.testflow-global-actions { gap: var(--testflow-px-10); }
+.testflow-global-tools { gap: var(--testflow-topbar-tool-gap); }
+.testflow-global-tools .testflow-btn { width: var(--testflow-px-27); height: var(--testflow-px-28_5); padding: var(--testflow-px-5); }
+.testflow-global-tools .testflow-btn svg { width: var(--testflow-px-17); height: var(--testflow-px-17); }
+.testflow-global-actions > .testflow-btn:last-child { min-width: var(--testflow-topbar-guide-width); }
+.testflow-resource-icon { color: var(--testflow-color-708469); }
+.testflow-overview .testflow-btn.testflow-task-title { font-size: var(--testflow-px-12); }
+
+.testflow-pipeline-card .testflow-resource-actions { padding-top: 0; border-top: 0; }
+.testflow-pipeline-card .testflow-resource-description { margin-top: var(--testflow-px-7); }
+.testflow-pipeline-card > .testflow-row.testflow-mt { margin-top: var(--testflow-px-18); }
+.testflow-grid-2 { gap: var(--testflow-px-18); }
+.testflow-grid-4 { gap: var(--testflow-px-18); }
+.testflow-btn.testflow-resource-version { padding: 0; border: 0; background: transparent; font-size: inherit; font-weight: inherit; line-height: inherit; color: inherit; }
+.testflow-module-card { padding: var(--testflow-px-20); border-radius: var(--testflow-px-10); }
+.testflow-module-card .testflow-tag { font-weight: 400; }
+.testflow-module-footer svg { display: inline-block; width: var(--testflow-icon-size); height: var(--testflow-icon-size); vertical-align: middle; stroke-width: 1.65; }
+.testflow-brand .testflow-tiny { letter-spacing: var(--testflow-brand-label-spacing); }
+.testflow-breadcrumb-domain { font-weight: 650; }
+.testflow-row-title { display: block; font-size: var(--testflow-px-12); font-weight: 550; margin-bottom: var(--testflow-px-4); }
+.testflow-table-wrap .testflow-stack > .testflow-badge { align-self: flex-start; }
+.testflow-table-wrap .testflow-badge { white-space: nowrap; overflow-wrap: normal; }
+.testflow-row-subtitle { margin-top: var(--testflow-px-4); font-size: var(--testflow-px-10); }
+.testflow-progress-cell > .testflow-progress { width: var(--testflow-px-120); margin-top: var(--testflow-px-6); }
+.testflow-overview .testflow-btn.testflow-task-title { color: var(--testflow-color-3c5242); }
+.testflow-assets-table td { height: auto; }
+.testflow-asset-identity { gap: var(--testflow-px-6); }
+.testflow-btn.testflow-asset-version { padding: 0; border: 0; height: auto; background: none; color: var(--testflow-muted); }
+.testflow-reference-state { margin-top: var(--testflow-px-5); }
+.testflow-asset-category { margin-bottom: var(--testflow-px-4); }
+.testflow-btn.testflow-cell-title { margin-bottom: 0; }
+.testflow-history-filters > .testflow-history-dataset { min-width: var(--testflow-history-dataset-width); }
+.testflow-history-filters > .testflow-history-pipeline { min-width: var(--testflow-history-pipeline-width); }
+.testflow-history-filters > .testflow-history-task { min-width: var(--testflow-history-task-width); }
+.testflow-history-footer { display: flex; justify-content: space-between; gap: var(--testflow-px-12); padding: var(--testflow-px-13) var(--testflow-px-22); border-top: var(--testflow-px-1) solid var(--testflow-line); color: var(--testflow-muted); font-size: var(--testflow-px-10); }
+.testflow-definition-list { margin: var(--testflow-px-13) 0; }
+.testflow-definition-row dd { margin: 0; overflow-wrap: anywhere; }
+.testflow-eval-model .testflow-stack { display: block; }
+.testflow-prompt-label { margin-bottom: var(--testflow-px-9); }
+.testflow-dimension-name { font-size: var(--testflow-px-12); font-weight: 550; color: var(--testflow-color-3c5242); }
+.testflow-row-subtitle, .testflow-history-table .testflow-row-subtitle, .testflow-cell-subtitle { color: var(--testflow-color-99a495); }
+.testflow-assets-table table, .testflow-history-table table { table-layout: auto; }
+.testflow-assets-table th, .testflow-history-table th { width: auto; }
+.testflow-module-runtime > .testflow-badge:last-child { background: transparent; }
+.testflow-profile-card > .testflow-row .testflow-btn { color: var(--testflow-accent); font-size: var(--testflow-px-11); font-weight: 400; line-height: 1.6; }
+.testflow-profile-card > .testflow-row .testflow-btn svg { display: inline-block; vertical-align: middle; }
+.testflow-profile-current { color: var(--testflow-accent); }
+.testflow-history-table td:nth-child(7) .testflow-mono,
+.testflow-history-table td:nth-child(8) .testflow-mono { color: var(--testflow-muted); }
+.testflow-definition-row dt { color: var(--testflow-color-a0ad91); }
+.testflow-panel-explanation { padding: var(--testflow-px-20) var(--testflow-px-22); }
+.testflow-eval-model .testflow-json { color: var(--testflow-color-496157); }

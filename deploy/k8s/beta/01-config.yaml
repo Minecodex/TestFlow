@@ -1,0 +1,252 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testflow-config
+  namespace: testflow
+data:
+  TESTFLOW_ENVIRONMENT: development
+  TESTFLOW_DATA_DIR: /data
+  TESTFLOW_COOKIE_SECURE: 'false'
+  TESTFLOW_PUBLIC_URL: http://127.0.0.1:18765
+  TESTFLOW_ALLOW_LOCAL_IMAGES: 'true'
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: testflow-bootstrap-code
+  namespace: testflow
+data:
+  bootstrap.py: |
+    """Cluster bootstrap and dependency gates used by the declarative Beta manifests."""
+    import asyncio
+    import base64
+    import os
+    from pathlib import Path
+    import sys
+    import time
+    from urllib.parse import unquote, urlsplit, quote
+
+
+    def secret_value(secret, key):
+        try:
+            return base64.b64decode(secret.data[key], validate=True).decode()
+        except (KeyError, ValueError, TypeError):
+            raise RuntimeError('Existing bootstrap Secret is missing valid configuration') from None
+
+
+    def database_password(secret):
+        url = urlsplit(secret_value(secret, 'TESTFLOW_DATABASE_URL'))
+        if url.hostname != 'testflow-postgres' or url.username != 'testflow' or not url.password:
+            raise RuntimeError('Existing bootstrap database URL is not the bundled PostgreSQL')
+        return unquote(url.password)
+
+
+    async def ensure_bootstrap_secrets(api, namespace):
+        from kubernetes_asyncio.client.exceptions import ApiException
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from kubernetes_installation import create_installation
+
+        async def read(name):
+            try:
+                return await api.read_namespaced_secret(name, namespace)
+            except ApiException as error:
+                if error.status == 404:
+                    return None
+                raise
+
+        async def create(body):
+            try:
+                return await api.create_namespaced_secret(namespace, body)
+            except ApiException as error:
+                if error.status == 409:
+                    return await read(body['metadata']['name'])
+                raise
+
+        platform = await read('testflow-secrets')
+        postgres = await read('testflow-postgres-secret')
+        candidate = None
+        if not platform or not postgres:
+            candidate = create_installation([], namespace, 'server:bootstrap', 'web:bootstrap', 18765)
+        if not postgres:
+            body = candidate.secrets[1]
+            if platform:
+                body['stringData']['password'] = database_password(platform)
+            postgres = await create(body)
+        password = secret_value(postgres, 'password')
+        if not platform:
+            body = candidate.secrets[0]
+            body['stringData']['TESTFLOW_DATABASE_URL'] = (
+                f'postgresql+asyncpg://testflow:{quote(password)}@testflow-postgres:5432/testflow')
+            platform = await create(body)
+        if database_password(platform) != password:
+            raise RuntimeError('Existing bootstrap Secrets have inconsistent database credentials')
+        for key in ('TESTFLOW_ADMIN_PASSWORD_HASH', 'TESTFLOW_ENCRYPTION_KEY'):
+            if not secret_value(platform, key):
+                raise RuntimeError('Existing bootstrap Secret has incomplete configuration')
+        print('Bootstrap Secrets ready; existing configuration preserved', flush=True)
+
+
+    async def bootstrap():
+        from kubernetes_asyncio import client, config
+        from kubernetes_asyncio.client.exceptions import ApiException
+        config.load_incluster_config()
+        deadline = time.monotonic() + 300
+        async with client.ApiClient() as api_client:
+            api = client.CoreV1Api(api_client)
+            while True:
+                try:
+                    await ensure_bootstrap_secrets(api, os.environ['TESTFLOW_NAMESPACE'])
+                    return
+                except ApiException as error:
+                    if error.status not in {403, 429, 500, 502, 503, 504} or time.monotonic() >= deadline:
+                        raise RuntimeError(f'Bootstrap Kubernetes API failed ({error.status})') from None
+                    await asyncio.sleep(2)
+
+
+    async def wait_database(schema=False):
+        from sqlalchemy import text
+        from sqlalchemy.ext.asyncio import create_async_engine
+        heads = None
+        if schema:
+            from alembic.config import Config
+            from alembic.script import ScriptDirectory
+            heads = set(ScriptDirectory.from_config(Config('/app/alembic.ini')).get_heads())
+        engine = create_async_engine(os.environ['TESTFLOW_DATABASE_URL'],
+                                     connect_args={'timeout': 3, 'command_timeout': 3})
+        deadline = time.monotonic() + 300
+        try:
+            while True:
+                try:
+                    async with engine.connect() as connection:
+                        if heads is None:
+                            await connection.execute(text('SELECT 1'))
+                        else:
+                            rows = (await connection.execute(text('SELECT version_num FROM alembic_version'))).scalars()
+                            if set(rows) != heads:
+                                raise RuntimeError('Migration is pending')
+                    print('Database schema ready' if schema else 'Database ready', flush=True)
+                    return
+                except Exception:
+                    if time.monotonic() >= deadline:
+                        raise RuntimeError('Database dependency did not become ready') from None
+                    await asyncio.sleep(2)
+        finally:
+            await engine.dispose()
+
+
+    async def wait_backend():
+        from urllib.request import urlopen
+        def ready():
+            with urlopen('http://testflow-server:8000/health/ready', timeout=3) as response:
+                return response.status == 200
+        deadline = time.monotonic() + 300
+        while True:
+            try:
+                if await asyncio.to_thread(ready):
+                    print('Backend ready', flush=True)
+                    return
+            except Exception:
+                pass
+            if time.monotonic() >= deadline:
+                raise RuntimeError('Backend did not become ready')
+            await asyncio.sleep(2)
+
+
+    async def main():
+        action = sys.argv[1] if len(sys.argv) > 1 else 'bootstrap'
+        if action == 'bootstrap':
+            await bootstrap()
+        elif action in {'wait-database', 'wait-schema'}:
+            await wait_database(schema=action == 'wait-schema')
+        elif action == 'wait-backend':
+            await wait_backend()
+        else:
+            raise SystemExit('Unknown bootstrap action')
+
+
+    if __name__ == '__main__':
+        asyncio.run(main())
+  kubernetes_installation.py: |
+    """Render the shared platform resources and private bootstrap configuration."""
+    from copy import deepcopy
+    from dataclasses import dataclass
+    from pathlib import Path
+    import re
+    import secrets
+    from urllib.parse import quote
+
+    from argon2 import PasswordHasher
+    from cryptography.fernet import Fernet
+    import yaml
+
+
+    @dataclass
+    class Installation:
+        namespace: dict
+        secrets: list[dict]
+        resources: list[dict]
+        password: str
+        encryption_key: str
+
+        def manifest(self):
+            return {'apiVersion': 'v1', 'kind': 'List',
+                    'items': [self.namespace, *self.secrets, *self.resources]}
+
+
+    def load_base_resources(directory: Path):
+        """Read the static base also used by the cluster deployment command."""
+        definition = yaml.safe_load((directory / 'kustomization.yaml').read_text())
+        if set(definition) - {'apiVersion', 'kind', 'resources'}:
+            raise ValueError('Image installer requires a static Kubernetes base')
+        return [resource for filename in definition['resources']
+                for resource in yaml.safe_load_all((directory / filename).read_text()) if resource]
+
+
+    def configure_resources(resources, namespace, server_image, web_image, port):
+        if len(namespace) > 63 or not re.fullmatch(r'testflow(?:-[a-z0-9](?:[-a-z0-9]*[a-z0-9])?)?', namespace):
+            raise ValueError('Namespace must be testflow or a valid testflow- Kubernetes namespace')
+        if not 1 <= port <= 65535:
+            raise ValueError('Port must be between 1 and 65535')
+        images = {'testflow-server': server_image, 'testflow-web': web_image}
+        if any(not image or any(char.isspace() for char in image) for image in images.values()):
+            raise ValueError('Platform images must be non-empty image references without whitespace')
+        resources = deepcopy(resources)
+        for resource in resources:
+            resource['metadata']['namespace'] = namespace
+            if resource['kind'] == 'RoleBinding':
+                for subject in resource['subjects']:
+                    if subject['kind'] == 'ServiceAccount':
+                        subject['namespace'] = namespace
+            if resource['kind'] == 'ConfigMap':
+                resource['data'].update(TESTFLOW_ENVIRONMENT='development',
+                                        TESTFLOW_PUBLIC_URL=f'http://127.0.0.1:{port}',
+                                        TESTFLOW_ALLOW_LOCAL_IMAGES='true', TESTFLOW_COOKIE_SECURE='false')
+            for container in resource.get('spec', {}).get('template', {}).get('spec', {}).get('containers', []):
+                image = container['image'].split(':')[0]
+                if image in images:
+                    container['image'] = images[image]
+        return resources
+
+
+    def create_installation(resources, namespace, server_image, web_image, port):
+        resources = configure_resources(resources, namespace, server_image, web_image, port)
+        password = '123456'
+        database_password = secrets.token_urlsafe(24)
+        encryption_key = Fernet.generate_key().decode()
+        platform_secret = {
+            'apiVersion': 'v1', 'kind': 'Secret', 'type': 'Opaque',
+            'metadata': {'name': 'testflow-secrets', 'namespace': namespace},
+            'stringData': {
+                'TESTFLOW_DATABASE_URL': f'postgresql+asyncpg://testflow:{quote(database_password)}@testflow-postgres:5432/testflow',
+                'TESTFLOW_ADMIN_PASSWORD_HASH': PasswordHasher().hash(password),
+                'TESTFLOW_ENCRYPTION_KEY': encryption_key}}
+        postgres_secret = {
+            'apiVersion': 'v1', 'kind': 'Secret', 'type': 'Opaque',
+            'metadata': {'name': 'testflow-postgres-secret', 'namespace': namespace},
+            'stringData': {'password': database_password}}
+        namespace_resource = {'apiVersion': 'v1', 'kind': 'Namespace', 'metadata': {
+            'name': namespace, 'labels': {
+                'app.kubernetes.io/part-of': 'testflow',
+                'testflow-acceptance': 'true' if namespace.startswith(('testflow-e2e-', 'testflow-restore-')) else 'false'}}}
+        return Installation(namespace_resource, [platform_secret, postgres_secret], resources,
+                            password, encryption_key)

@@ -1,0 +1,87 @@
+.testflow-select .testflow-select-trigger,
+.select__trigger.testflow-input {
+  height: var(--testflow-control-height);
+  min-height: var(--testflow-control-height);
+  padding: var(--testflow-px-5) var(--testflow-px-10);
+  padding-right: var(--testflow-px-28);
+  border: var(--testflow-px-1) solid var(--testflow-line);
+  border-radius: var(--testflow-px-6);
+  box-shadow: none;
+  font-size: var(--testflow-font-sm);
+  line-height: 1.5;
+}
+.testflow-select-trigger [data-slot="select-value"],
+.select__trigger.testflow-input [data-slot="select-value"] {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: inherit;
+}
+.testflow-select-trigger .select__indicator,
+.select__trigger.testflow-input .select__indicator {
+  width: var(--testflow-control-icon-size);
+  height: var(--testflow-control-icon-size);
+  right: var(--testflow-px-10);
+  color: var(--testflow-muted);
+}
+.testflow-select-trigger:is(:hover, [data-hovered="true"]) {
+  border-color: var(--testflow-muted);
+  background: var(--testflow-surface);
+}
+.testflow-select-trigger:is(:focus-visible, [data-focus-visible="true"]) {
+  outline: var(--testflow-px-2) solid var(--testflow-accent-soft);
+  outline-offset: var(--testflow-px-2);
+  border-color: var(--testflow-accent);
+}
+.testflow-select-popover,
+.select__popover {
+  border: var(--testflow-px-1) solid var(--testflow-line);
+  border-radius: var(--testflow-px-8);
+  background: var(--testflow-surface);
+  color: var(--testflow-text);
+  box-shadow: var(--testflow-shadow);
+  font-size: var(--testflow-font-sm);
+  max-height: var(--testflow-px-300);
+}
+.testflow-select-popover .testflow-select-option,
+.select__popover [data-slot="list-box-item"] {
+  min-height: var(--testflow-control-height);
+  padding: var(--testflow-px-6) var(--testflow-px-8);
+  border-radius: var(--testflow-px-5);
+  font-size: var(--testflow-font-sm);
+  color: var(--testflow-text);
+}
+.testflow-select-option:is([data-focused="true"], [data-selected="true"]) {
+  background: var(--testflow-accent-soft);
+  color: var(--testflow-accent);
+}
+.testflow-select-option [data-slot="list-box-item-indicator"] svg {
+  width: var(--testflow-control-icon-size);
+  height: var(--testflow-control-icon-size);
+}
+.testflow-page-heading {
+  align-items: center;
+  margin-bottom: var(--testflow-space-3);
+}
+.testflow-page-heading h1 {
+  font-size: var(--testflow-heading-size);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.testflow-heading-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--testflow-px-10);
+}
+.testflow-heading-meta {
+  font-size: var(--testflow-font-sm);
+  color: var(--testflow-muted);
+  overflow-wrap: anywhere;
+}
+.testflow-btn.testflow-delete-action:hover {
+  color: var(--testflow-danger);
+  background: var(--testflow-danger-soft);
+}

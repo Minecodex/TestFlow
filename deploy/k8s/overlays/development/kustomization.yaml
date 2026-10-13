@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: testflow-dev
+resources:
+  - ../../base
+  - namespace.yaml
+images:
+  - name: testflow-server
+    newTag: dev
+  - name: testflow-web
+    newTag: dev
+configMapGenerator:
+  - name: testflow-config
+    behavior: merge
+    literals:
+      - TESTFLOW_ENVIRONMENT=development

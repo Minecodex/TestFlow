@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "success",
+        "error",
+        "truncate",
+        "wrong_sequence",
+        "premature_complete",
+        "spontaneous_cancel",
+        "hang",
+        "ignore_cancel",
+        "late_error",
+        "end_then_hang",
+        "by_input"
+      ]
+    },
+    "delay_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 120000
+    }
+  },
+  "required": [
+    "mode",
+    "delay_ms"
+  ],
+  "additionalProperties": false
+}

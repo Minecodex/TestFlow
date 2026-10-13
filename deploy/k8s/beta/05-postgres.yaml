@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: testflow-postgres
+  namespace: testflow
+spec:
+  selector:
+    app: testflow-postgres
+  ports:
+  - name: postgres
+    port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: testflow-postgres
+  namespace: testflow
+spec:
+  serviceName: testflow-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testflow-postgres
+  template:
+    metadata:
+      labels:
+        app: testflow-postgres
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 999
+      containers:
+      - name: postgres
+        image: postgres:18
+        env:
+        - name: POSTGRES_DB
+          value: testflow
+        - name: POSTGRES_USER
+          value: testflow
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: testflow-postgres-secret
+              key: password
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - testflow
+            - -d
+            - testflow
+          periodSeconds: 3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: '1'
+            memory: 512Mi
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 4Gi

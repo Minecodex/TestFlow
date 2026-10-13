@@ -1,0 +1,10 @@
+{
+  "fields": [
+    {
+      "name": "query",
+      "type": "Text",
+      "stream": false,
+      "format": "UTF-8"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "@testflow/module-ui-sdk",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit" },
+  "peerDependencies": { "react": "^19.0.0" },
+  "devDependencies": { "@types/react": "^19.0.0", "typescript": "7.0.2" }
+}

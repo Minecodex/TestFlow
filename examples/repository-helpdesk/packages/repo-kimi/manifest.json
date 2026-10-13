@@ -1,0 +1,20 @@
+{
+  "protocol": "testflow.module.v1",
+  "id": "repo-kimi",
+  "name": "Repository Kimi answer",
+  "version": "1.0.0-d101c9a45266",
+  "description": "Thin adapter importing business code from the pinned TestFlow Git mount",
+  "exposes_trace": true,
+  "defaults": {
+    "credential_id": "configure-module-credential"
+  },
+  "runtime": {
+    "mode": "pod",
+    "image": "testflow/repo-kimi:v1.0.0-d101c9a45266",
+    "port": 8080,
+    "reuse_scope": "batch_node",
+    "requires_sequential": false,
+    "cpu": "500m",
+    "memory": "384Mi"
+  }
+}

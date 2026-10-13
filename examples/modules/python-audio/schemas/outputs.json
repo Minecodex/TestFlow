@@ -1,0 +1,22 @@
+{
+  "fields": [
+    {
+      "name": "audio",
+      "type": "Audio",
+      "format": "WAV · 16kHz · Mono",
+      "stream": false
+    },
+    {
+      "name": "summary",
+      "type": "Text",
+      "format": "UTF-8",
+      "stream": false
+    },
+    {
+      "name": "stats",
+      "type": "JSON",
+      "format": "application/json",
+      "stream": false
+    }
+  ]
+}

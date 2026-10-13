@@ -1,0 +1,15 @@
+.testflow-transfer-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--testflow-space-3);
+  max-height: 40vh;
+  overflow: auto;
+}
+
+.testflow-transfer-toolbar {
+  flex-wrap: wrap;
+}
+.testflow-page-heading > .testflow-row {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}

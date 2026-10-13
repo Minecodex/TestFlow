@@ -1,0 +1,39 @@
+{
+  "format": "testflow.dataset.v1",
+  "assets": [
+    {
+      "key": "query",
+      "name": "Helpdesk example · query.txt",
+      "type": "Text",
+      "format": "UTF-8",
+      "sha256": "78f5ad6551dfe087ad237bd0ca7c8caa35b4441efc65ec8d6a2ea4709345521f",
+      "revision_digest": "d50c222766fe05ed8874bf756a392e5e8b14955a371f42e953b36cef401a6f04"
+    }
+  ],
+  "dataset": {
+    "name": "GitHub example case · retrieval",
+    "description": "Fixed synthetic inputs; pairs with GitHub example · retrieval",
+    "input_schema": {
+      "fields": [
+        {
+          "name": "query",
+          "type": "Text",
+          "format": "UTF-8",
+          "stream": false
+        }
+      ]
+    },
+    "cases": [
+      {
+        "key": "refund",
+        "name": "Refund policy · retrieval",
+        "inputs": {
+          "query": {
+            "value": null,
+            "asset_key": "query"
+          }
+        }
+      }
+    ]
+  }
+}

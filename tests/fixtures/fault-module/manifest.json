@@ -1,0 +1,28 @@
+{
+  "protocol": "testflow.module.v1",
+  "id": "test-fixture",
+  "name": "TEST ONLY: fault fixture",
+  "version": "1.0.2",
+  "description": "Explicit test fixture; never installed by default",
+  "inputs": "schemas/inputs.json",
+  "outputs": "schemas/outputs.json",
+  "parameters": "schemas/parameters.json",
+  "defaults": {
+    "mode": "success",
+    "delay_ms": 0
+  },
+  "ui": "ui/config-panel.js",
+  "ui_sdk": "testflow.ui.v1",
+  "exposes_trace": true,
+  "runtime": {
+    "mode": "pod",
+    "image": "testflow/fault-module:v1.0.2-957fbfac8cb5",
+    "port": 8080,
+    "code_mount": null,
+    "registry_credential_id": null,
+    "reuse_scope": "batch_node",
+    "requires_sequential": false,
+    "cpu": "100m",
+    "memory": "64Mi"
+  }
+}

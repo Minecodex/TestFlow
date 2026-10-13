@@ -1,0 +1,98 @@
+{
+  "format": "testflow.example.v1",
+  "source": {
+    "url": "https://github.com/Minecodex/TestFlow.git",
+    "commit": "7c89f3076ab637a3467fbf3d56f2ae7fc8f09e2e",
+    "processor": "examples/scenarios/tiny-helpdesk/processors.py",
+    "knowledge": "examples/scenarios/tiny-helpdesk/project/knowledge.json"
+  },
+  "modules": [
+    {
+      "key": "repo-bm25",
+      "id": "repo-bm25",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "198ea8e7119e851b47a4fd6e5609cacbd60bce3a98246a6c83c1168211be30d6",
+      "image": "testflow/repo-bm25:v1.0.0-d101c9a45266",
+      "file": "downloads/modules/repo-bm25.zip"
+    },
+    {
+      "key": "repo-asr",
+      "id": "repo-asr",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "ae4df79a101eb2ab8a775cf27a997948dad20a4e3b25f395e5d40e1ded1c6b38",
+      "image": "testflow/repo-asr:v1.0.0-d101c9a45266",
+      "file": "downloads/modules/repo-asr.zip"
+    },
+    {
+      "key": "repo-ocr",
+      "id": "repo-ocr",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "10e2d7f17a9600713e48f2d4c443fa4fcee120b29de9c664c38b5cd2e13bdf0b",
+      "image": "testflow/repo-ocr:v1.0.0-d101c9a45266",
+      "file": "downloads/modules/repo-ocr.zip"
+    },
+    {
+      "key": "repo-kimi",
+      "id": "repo-kimi",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "05ff717e08e82d333e7a70667f986f5cafb14ccfc3c983c517d63292723b0cf8",
+      "image": "testflow/repo-kimi:v1.0.0-d101c9a45266",
+      "file": "downloads/modules/repo-kimi.zip"
+    },
+    {
+      "key": "repo-tts",
+      "id": "repo-tts",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "bec91f0b43c8192ede8ae96e477d6fdeb9509dca5672a2db25ba4a62604c0fa1",
+      "image": "testflow/repo-tts:v1.0.0-d101c9a45266",
+      "file": "downloads/modules/repo-tts.zip"
+    }
+  ],
+  "workflows": [
+    {
+      "file": "workflows/retrieval.workflow.json",
+      "sha256": "efcdc3a989e5a628e0a6ef094f23cac6aa7d9215e9bcb43b89c908cdfc224aa4"
+    },
+    {
+      "file": "workflows/text.workflow.json",
+      "sha256": "a6508159146333fe7e7a2373c5e6ef8c282c5dda46d90d3a05f679a2c9ce5458"
+    },
+    {
+      "file": "workflows/voice.workflow.json",
+      "sha256": "52934b598fc4f42301246bffdaef5a5cae6f507b2697a05a614ac920f64a5906"
+    },
+    {
+      "file": "workflows/image.workflow.json",
+      "sha256": "bcfff0ec5bdb123ceb8e2f92ee54d0eb24ae2208a60225b9a419bba3c6310db6"
+    }
+  ],
+  "assets": [
+    {
+      "file": "downloads/assets/helpdesk.assets.zip",
+      "sha256": "8743dc17e590a2f5d90ce672988b840d58121c69f7c85ee57f3c8ce9186bcc14",
+      "count": 3
+    }
+  ],
+  "datasets": [
+    {
+      "file": "datasets/retrieval.dataset.json",
+      "sha256": "51b7698d7596f0fc5cc530e45388f8894f382da04fdb3e080fb66563fbc78364",
+      "workflow": "workflows/retrieval.workflow.json"
+    },
+    {
+      "file": "datasets/text.dataset.json",
+      "sha256": "64e37a18b549ec295a6975e3efd2e5f23d9010db7d2a36e5266e6845dd7333fc",
+      "workflow": "workflows/text.workflow.json"
+    },
+    {
+      "file": "datasets/voice.dataset.json",
+      "sha256": "8994c7e6398fe5b512cbe318751ab40af624ebcc8929bdfbcbe52dea6d557e02",
+      "workflow": "workflows/voice.workflow.json"
+    },
+    {
+      "file": "datasets/image.dataset.json",
+      "sha256": "3b4fe8bca2faa3e5ebaac20982b1ee24ee66764297d3e299c5062dd1d89c539c",
+      "workflow": "workflows/image.workflow.json"
+    }
+  ]
+}

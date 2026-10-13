@@ -1,0 +1,24 @@
+{
+  "name": "testflow",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.23.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @testflow/web dev",
+    "dev:server": "uv run --project server uvicorn testflow.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir server/src",
+    "build": "pnpm --filter @testflow/web build",
+    "typecheck": "pnpm -r typecheck",
+    "test:server": "uv run --directory server pytest",
+    "test:demo": "node --test tests/*.test.cjs",
+    "test:e2e": "playwright test",
+    "check:k8s": "kubectl kustomize deploy/k8s/overlays/development",
+    "api": "pnpm --filter @testflow/tooling api"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.0",
+    "prettier": "^3.9.10"
+  }
+}

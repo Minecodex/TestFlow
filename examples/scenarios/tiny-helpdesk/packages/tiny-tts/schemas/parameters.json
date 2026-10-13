@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "speed": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 220
+    }
+  },
+  "required": [
+    "speed"
+  ],
+  "additionalProperties": false
+}
