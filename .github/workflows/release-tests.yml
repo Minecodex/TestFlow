@@ -76,7 +76,7 @@ jobs:
             unset TESTFLOW_TEST_DATABASE_URL
           fi
           timeout --signal=SIGINT --kill-after=30s 5m \
-            uv run --directory server pytest -v -o faulthandler_timeout=90
+            uv run --directory server pytest -v --full-trace -o faulthandler_timeout=90
       - name: Tooling suite and deployment consistency
         run: |
           uv run --project server pytest -q tests/test_*.py
