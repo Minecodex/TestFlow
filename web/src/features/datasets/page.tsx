@@ -1,5 +1,6 @@
+import { DeleteAction, EditAction } from "../../shared/ui";
 import { useListState } from "../../shared/ui/list-state";
-import { Pagination } from "../../shared/ui";
+import {Pagination} from "../../shared/ui";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowRight, Database, History, Plus } from "lucide-react";
@@ -13,29 +14,17 @@ import {
 } from "../../shared/api/hooks";
 import type { Asset, Case, Dataset, Resource } from "../../shared/api/types";
 import { textSchema } from "../../shared/api/types";
-import {
-  Action,
-  Badge,
-  Chips,
-  DataTable,
-  Dialog,
-  Empty,
-  Failure,
-  Head,
-  Json,
-  Notice,
-  Panel,
-  SchemaEditor,
-  Text,
-} from "../../shared/ui";
-import { Hide, Versions } from "../../shared/ui/resources";
+import {Action, Badge, Chips, DataTable, Dialog, Empty, Failure, Head, Json, Notice, Panel, SchemaEditor, Text} from "../../shared/ui";
+import { DeleteResource, Versions } from "../../shared/ui/resources";
 import { CaseEditor } from "./case-editor";
+import { InputGroups } from "./materials";
 import { CaseSession } from "./case-session";
 import { schemaIssues } from "../../shared/schema/validation";
 import { DraftConflict, restoreDraft } from "../../shared/ui/draft-conflict";
 import { RequestState } from "../../shared/ui/request-state";
 import { ResourceCard } from "../../shared/ui/resource-card";
 import { DatabaseIcon } from "../../shared/icons";
+import { DatasetExport, ImportDataset } from "./transfer";
 function Wizard({
   initial,
   onClose,
@@ -44,7 +33,7 @@ function Wizard({
   onClose: () => void;
 }) {
   const t = useMessages();
-  const key = "testflow.dataset-draft." + (initial?.id || "new");
+  const key = "testflow.dataset-draft.v2." + (initial?.id || "new");
   const [restored] = useState(() =>
     restoreDraft(
       key,
@@ -53,7 +42,6 @@ function Wizard({
         name: "",
         description: "",
         input_schema: structuredClone(textSchema),
-        output_schema: structuredClone(textSchema),
         cases: [],
       },
     ),
@@ -96,10 +84,10 @@ function Wizard({
   const addBulk = (asset: Resource<Asset>) => {
     if (data.input_schema.fields.length !== 1) return;
     const field = data.input_schema.fields[0];
-    const binding = { asset_id: asset.id, asset_version: asset.version };
+    const binding = { asset_id: asset.id, asset_version: null };
     if (
       cases.some(
-        (c) => JSON.stringify(c.inputs[field.name]) === JSON.stringify(binding),
+        (c) => c.inputs[field.name]?.asset_id === asset.id,
       )
     )
       return;
@@ -110,17 +98,6 @@ function Wizard({
           id: crypto.randomUUID(),
           name: asset.name,
           inputs: { [field.name]: binding },
-          reference:
-            asset.data.reference_confirmed &&
-            data.output_schema.fields.length === 1
-              ? {
-                  [data.output_schema.fields[0]?.name || "text"]:
-                    asset.data.reference,
-                }
-              : {},
-          reference_confirmed:
-            !!asset.data.reference_confirmed &&
-            data.output_schema.fields.length === 1,
         },
       ],
     });
@@ -147,8 +124,7 @@ function Wizard({
                 action="dataset-next"
                 isDisabled={
                   !data.name ||
-                  schemaIssues(data.input_schema).length > 0 ||
-                  schemaIssues(data.output_schema).length > 0
+                  schemaIssues(data.input_schema).length > 0
                 }
                 onPress={() => setStep(step + 1)}
               >
@@ -161,8 +137,7 @@ function Wizard({
                 isDisabled={
                   conflict ||
                   !data.name ||
-                  schemaIssues(data.input_schema).length > 0 ||
-                  schemaIssues(data.output_schema).length > 0
+                  schemaIssues(data.input_schema).length > 0
                 }
                 isPending={save.isPending}
                 onPress={() =>
@@ -221,12 +196,7 @@ function Wizard({
                 onChange={(input_schema) => patch({ input_schema })}
                 stream={false}
               />
-              <h3>{t.common.outputSchema}</h3>
-              <SchemaEditor
-                value={data.output_schema}
-                onChange={(output_schema) => patch({ output_schema })}
-                stream={false}
-              />
+
             </>
           ) : step === 1 ? (
             <>
@@ -253,14 +223,14 @@ function Wizard({
                 >
                   <span>{c.name}</span>
                   <div className="testflow-row">
-                    <Action
+                    <EditAction
                       action="draft-edit-case"
                       size="sm"
                       onPress={() => setCaseDraft(c)}
                     >
                       {t.common.edit}
-                    </Action>
-                    <Action
+                    </EditAction>
+                    <DeleteAction
                       action="draft-remove-case"
                       size="sm"
                       danger
@@ -269,7 +239,7 @@ function Wizard({
                       }
                     >
                       {t.common.remove}
-                    </Action>
+                    </DeleteAction>
                   </div>
                 </div>
               ))}
@@ -280,7 +250,6 @@ function Wizard({
             <>
               <h3>{data.name}</h3>
               <Chips schema={data.input_schema} />
-              <Chips schema={data.output_schema} />
               <Badge>
                 {cases.length} {t.datasets.cases}
               </Badge>
@@ -313,10 +282,7 @@ function Wizard({
                   key={a.id}
                   isDisabled={cases.some(
                     (c) =>
-                      c.inputs[data.input_schema.fields[0].name]?.asset_id ===
-                        a.id &&
-                      c.inputs[data.input_schema.fields[0].name]
-                        ?.asset_version === a.version,
+                      c.inputs[data.input_schema.fields[0].name]?.asset_id === a.id,
                   )}
                   onPress={() => addBulk(a)}
                 >
@@ -341,6 +307,7 @@ export function DatasetsPage() {
   >();
   const [caseDraft, setCaseDraft] = useState<Case | null | undefined>();
   const [versions, setVersions] = useState<Resource<Dataset>>();
+  const [importing, setImporting] = useState(false);
   const change = useWrite((data: Dataset) =>
     write(
       `/datasets/${selected.data!.id}`,
@@ -354,7 +321,7 @@ export function DatasetsPage() {
       <>
         <Head
           title={dataset.name}
-          description={`v${dataset.selected_version} · ${dataset.data.description || ""}`}
+          meta={`v${dataset.selected_version} · ${dataset.data.description || ""}`}
           actions={
             <>
               <Action
@@ -363,9 +330,10 @@ export function DatasetsPage() {
               >
                 {t.common.back}
               </Action>
-              <Action action="edit-dataset" onPress={() => setEditing(dataset)}>
+              <EditAction action="edit-dataset" onPress={() => setEditing(dataset)}>
                 {t.common.edit}
-              </Action>
+              </EditAction>
+              <DatasetExport resource={dataset} />
               <Action
                 action="add-case"
                 primary
@@ -377,61 +345,16 @@ export function DatasetsPage() {
             </>
           }
         />
-        <div className="testflow-grid-2">
-          <Panel title={t.common.inputSchema}>
-            <Chips schema={dataset.data.input_schema} />
-          </Panel>
-          <Panel title={t.common.outputSchema}>
-            <Chips schema={dataset.data.output_schema} />
-          </Panel>
-        </div>
+        <Panel title={t.common.inputSchema}>
+          <Chips schema={dataset.data.input_schema} />
+        </Panel>
         <div className="testflow-mt">
           <Failure error={change.error} />
           <Panel
             title={`${t.datasets.cases} · ${dataset.data.cases?.length || 0}`}
           >
-            <DataTable
-              label={t.datasets.cases}
-              headers={[t.common.name, t.common.reference, t.common.actions]}
-              rows={(dataset.data.cases || [])
-                .slice((list.page - 1) * 30, list.page * 30)
-                .map((c) => ({
-                  id: c.id,
-                  cells: [
-                    c.name,
-                    <Badge state={c.reference_confirmed ? "ready" : "pending"}>
-                      {c.reference_confirmed
-                        ? t.common.confirmed
-                        : t.common.unconfirmed}
-                    </Badge>,
-                    <div className="testflow-row-actions">
-                      <Action
-                        size="sm"
-                        action="edit-case"
-                        onPress={() => setCaseDraft(c)}
-                      >
-                        {t.common.edit}
-                      </Action>
-                      <Action
-                        size="sm"
-                        danger
-                        action="remove-case"
-                        isPending={change.isPending}
-                        onPress={() =>
-                          change.mutate({
-                            ...dataset.data,
-                            cases: dataset.data.cases!.filter(
-                              (v) => v.id !== c.id,
-                            ),
-                          })
-                        }
-                      >
-                        {t.common.remove}
-                      </Action>
-                    </div>,
-                  ],
-                }))}
-            />
+            <InputGroups cases={(dataset.data.cases || []).slice((list.page - 1) * 30, list.page * 30)} schema={dataset.data.input_schema}
+              onEdit={setCaseDraft} pending={change.isPending} onRemove={value => change.mutate({...dataset.data, cases: dataset.data.cases!.filter(c => c.id !== value.id)})} />
           </Panel>
         </div>
         {caseDraft !== undefined && (
@@ -470,46 +393,66 @@ export function DatasetsPage() {
     <>
       <Head
         title={t.datasets.title}
-        description={t.datasets.description}
-        eyebrow="DATASETS / 05"
         actions={
-          <Action primary action="new-dataset" onPress={() => setEditing(null)}>
-            <Plus />
-            {t.datasets.add}
-          </Action>
+          <>
+            <Action action="import-dataset" onPress={() => setImporting(true)}>
+              {t.datasets.import}
+            </Action>
+            <Action
+              primary
+              action="new-dataset"
+              onPress={() => setEditing(null)}
+            >
+              <Plus />
+              {t.datasets.add}
+            </Action>
+          </>
         }
       />
       <Failure error={query.error || selected.error} />
+      <ImportDataset
+        open={importing}
+        onClose={() => setImporting(false)}
+        onImported={(resource) => {
+          setImporting(false);
+          navigate("/datasets/" + resource.id);
+        }}
+      />
       <div className="testflow-grid-3">
         {query.data?.items.map((d) => (
-          <ResourceCard key={d.id} icon={<DatabaseIcon />} title={d.name} version={d.version} onVersion={() => setVersions(d)}
-            summary={`${d.data.cases?.length || 0} ${t.datasets.cardCases} · ${d.data.cases?.filter(c=>c.reference_confirmed).length || 0} ${t.datasets.formalReferences}`}
-            actions={<>
-              <Hide kind="datasets" resource={d} iconOnly />
-              <div className="testflow-row">
-                <Action
-                  size="sm"
-                  action="dataset-detail"
-                  onPress={() => navigate("/datasets/" + d.id)}
-                >
-                  {t.datasets.open}
-                  <ArrowRight />
-                </Action>
-              </div>
-            </>}
+          <ResourceCard
+            key={d.id}
+            icon={<DatabaseIcon />}
+            title={d.name}
+            version={d.version}
+            onVersion={() => setVersions(d)}
+            summary={`${d.data.cases?.length || 0} ${t.datasets.cardCases}`}
+            actions={
+              <>
+                <DeleteResource kind="datasets" resource={d} />
+                <div className="testflow-row">
+                  <Action
+                    size="sm"
+                    action="dataset-detail"
+                    onPress={() => navigate("/datasets/" + d.id)}
+                  >
+                    {t.datasets.open}
+                    <ArrowRight />
+                  </Action>
+                </div>
+              </>
+            }
           >
             <div className="testflow-schema-section">
-              <div className="testflow-eyebrow">INPUT SCHEMA</div>
+              <div className="testflow-eyebrow">{t.common.inputSchema}</div>
               <Chips schema={d.data.input_schema} />
-            </div>
-            <div className="testflow-schema-section">
-              <div className="testflow-eyebrow">EXPECTED OUTPUT</div>
-              <Chips schema={d.data.output_schema} />
             </div>
           </ResourceCard>
         ))}
       </div>
-      <div className="testflow-mt"><Notice>{t.datasets.schemaNote}</Notice></div>
+      <div className="testflow-mt">
+        <Notice>{t.datasets.schemaNote}</Notice>
+      </div>
       {query.data?.total === 0 && <Empty text={t.common.empty} />}{" "}
       {editing !== undefined && (
         <Wizard

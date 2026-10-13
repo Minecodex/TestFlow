@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from testflow.core.errors import fail
-from testflow.infrastructure.models import Resource, Revision, now
+from testflow.infrastructure.models import Event, Resource, Revision, now
 
 
 def digest(value) -> str:
@@ -45,8 +45,14 @@ async def save_resource(db: AsyncSession, kind: str, data: dict, resource_id: st
         db.add(row)
         await db.flush()
     db.add(Revision(resource_id=row.id, number=row.version, data=data, digest=digest(data)))
+    await resource_changed(db, kind, row.id, row.version, row.hidden)
     await db.flush()
     return await get_resource(db, kind, row.id)
+
+
+async def resource_changed(db, kind, resource_id, version, hidden):
+    # Commit the cursor alongside the revision. Broadcast only identity, never resource contents.
+    db.add(Event(kind="resource.changed", data={"kind": kind, "resource_id": resource_id, "version": version, "hidden": hidden}))
 
 
 async def list_resources(db: AsyncSession, kind: str, hidden: bool = False, search: str = "", page: int = 1, page_size: int = 30, *, asset_type=None):

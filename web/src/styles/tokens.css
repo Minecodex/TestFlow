@@ -1,4 +1,16 @@
 :root {
+  --testflow-image-viewer-height: 70vh;
+  --testflow-thumbnail-width: 144px;
+  --testflow-thumbnail-height: 96px;
+  --testflow-material-column-width: 190px;
+  --testflow-case-table-width: 940px;
+  --testflow-report-table-width: 1240px;
+  --testflow-rich-history-table-width: 1550px;
+  --testflow-control-height: 32px;
+  --testflow-control-icon-size: 12px;
+  --testflow-heading-size: 20px;
+  --testflow-canvas-min-height: 620px;
+  --testflow-canvas-library-width: 240px;
   --testflow-asset-row-height: 76px;
   --testflow-history-row-height: 70px;
   --testflow-history-table-width: 1100px;

@@ -1,0 +1,506 @@
+{
+  "format": "testflow.workflow.v1",
+  "pipeline": {
+    "name": "GitHub example · text",
+    "description": "Business functions imported from a fixed GitHub commit in real module Pods",
+    "input_schema": {
+      "fields": [
+        {
+          "name": "query",
+          "type": "Text",
+          "format": "UTF-8",
+          "stream": false
+        }
+      ]
+    },
+    "output_schema": {
+      "fields": [
+        {
+          "name": "answer",
+          "type": "Text",
+          "format": "UTF-8",
+          "stream": false
+        },
+        {
+          "name": "audio",
+          "type": "Audio",
+          "format": "WAV · 16kHz · Mono",
+          "stream": false
+        },
+        {
+          "name": "evidence",
+          "type": "JSON",
+          "format": "application/json",
+          "stream": false
+        }
+      ]
+    },
+    "nodes": [
+      {
+        "id": "start",
+        "kind": "start",
+        "name": "Start",
+        "x": 0.0,
+        "y": 200.0,
+        "module_key": null,
+        "input_schema": null,
+        "output_schema": {
+          "fields": [
+            {
+              "name": "query",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {},
+        "parameter_credentials": [],
+        "runtime": null,
+        "timeout": 30.0,
+        "mappings": [],
+        "direction": null
+      },
+      {
+        "id": "retrieval",
+        "kind": "module",
+        "name": "repo-bm25",
+        "x": 350.0,
+        "y": 200.0,
+        "module_key": "repo-bm25",
+        "input_schema": {
+          "fields": [
+            {
+              "name": "query",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            }
+          ]
+        },
+        "output_schema": {
+          "fields": [
+            {
+              "name": "query",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "context",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {
+          "top_k": 2
+        },
+        "parameter_credentials": [],
+        "runtime": {
+          "mode": "pod",
+          "image": "testflow/repo-bm25:v1.0.0-d101c9a45266",
+          "port": 8080,
+          "code_mount": {
+            "repository_key": "testflow",
+            "commit": "7c89f3076ab637a3467fbf3d56f2ae7fc8f09e2e",
+            "mount_path": "/workspace/repository"
+          },
+          "registry_credential_key": null,
+          "reuse_scope": "batch_node",
+          "requires_sequential": false,
+          "cpu": "500m",
+          "memory": "384Mi"
+        },
+        "timeout": 90.0,
+        "mappings": [],
+        "direction": null
+      },
+      {
+        "id": "kimi",
+        "kind": "module",
+        "name": "repo-kimi",
+        "x": 550.0,
+        "y": 200.0,
+        "module_key": "repo-kimi",
+        "input_schema": {
+          "fields": [
+            {
+              "name": "query",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "context",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "output_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": true
+            },
+            {
+              "name": "evidence",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {
+          "credential_id": null
+        },
+        "parameter_credentials": [
+          {
+            "path": [
+              "credential_id"
+            ],
+            "credential_key": "kimi"
+          }
+        ],
+        "runtime": {
+          "mode": "pod",
+          "image": "testflow/repo-kimi:v1.0.0-d101c9a45266",
+          "port": 8080,
+          "code_mount": {
+            "repository_key": "testflow",
+            "commit": "7c89f3076ab637a3467fbf3d56f2ae7fc8f09e2e",
+            "mount_path": "/workspace/repository"
+          },
+          "registry_credential_key": null,
+          "reuse_scope": "batch_node",
+          "requires_sequential": false,
+          "cpu": "500m",
+          "memory": "384Mi"
+        },
+        "timeout": 90.0,
+        "mappings": [],
+        "direction": null
+      },
+      {
+        "id": "full",
+        "kind": "conversion",
+        "name": "Collect stream",
+        "x": 750.0,
+        "y": 200.0,
+        "module_key": null,
+        "input_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": true
+            },
+            {
+              "name": "evidence",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "output_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "evidence",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {},
+        "parameter_credentials": [],
+        "runtime": null,
+        "timeout": 30.0,
+        "mappings": [],
+        "direction": "to_full"
+      },
+      {
+        "id": "answer",
+        "kind": "assembly",
+        "name": "Answer field",
+        "x": 950.0,
+        "y": 200.0,
+        "module_key": null,
+        "input_schema": null,
+        "output_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {},
+        "parameter_credentials": [],
+        "runtime": null,
+        "timeout": 30.0,
+        "mappings": [
+          {
+            "target": "answer",
+            "source": "full",
+            "field": "answer"
+          }
+        ],
+        "direction": null
+      },
+      {
+        "id": "tts",
+        "kind": "module",
+        "name": "repo-tts",
+        "x": 1150.0,
+        "y": 200.0,
+        "module_key": "repo-tts",
+        "input_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            }
+          ]
+        },
+        "output_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "audio",
+              "type": "Audio",
+              "format": "WAV · 16kHz · Mono",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {
+          "speed": 150
+        },
+        "parameter_credentials": [],
+        "runtime": {
+          "mode": "pod",
+          "image": "testflow/repo-tts:v1.0.0-d101c9a45266",
+          "port": 8080,
+          "code_mount": {
+            "repository_key": "testflow",
+            "commit": "7c89f3076ab637a3467fbf3d56f2ae7fc8f09e2e",
+            "mount_path": "/workspace/repository"
+          },
+          "registry_credential_key": null,
+          "reuse_scope": "batch_node",
+          "requires_sequential": false,
+          "cpu": "500m",
+          "memory": "384Mi"
+        },
+        "timeout": 90.0,
+        "mappings": [],
+        "direction": null
+      },
+      {
+        "id": "result",
+        "kind": "assembly",
+        "name": "Answer, audio and evidence",
+        "x": 1350.0,
+        "y": 200.0,
+        "module_key": null,
+        "input_schema": null,
+        "output_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "audio",
+              "type": "Audio",
+              "format": "WAV · 16kHz · Mono",
+              "stream": false
+            },
+            {
+              "name": "evidence",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {},
+        "parameter_credentials": [],
+        "runtime": null,
+        "timeout": 30.0,
+        "mappings": [
+          {
+            "target": "answer",
+            "source": "tts",
+            "field": "answer"
+          },
+          {
+            "target": "audio",
+            "source": "tts",
+            "field": "audio"
+          },
+          {
+            "target": "evidence",
+            "source": "full",
+            "field": "evidence"
+          }
+        ],
+        "direction": null
+      },
+      {
+        "id": "end",
+        "kind": "end",
+        "name": "End",
+        "x": 1550.0,
+        "y": 200.0,
+        "module_key": null,
+        "input_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "audio",
+              "type": "Audio",
+              "format": "WAV · 16kHz · Mono",
+              "stream": false
+            },
+            {
+              "name": "evidence",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "output_schema": {
+          "fields": [
+            {
+              "name": "answer",
+              "type": "Text",
+              "format": "UTF-8",
+              "stream": false
+            },
+            {
+              "name": "audio",
+              "type": "Audio",
+              "format": "WAV · 16kHz · Mono",
+              "stream": false
+            },
+            {
+              "name": "evidence",
+              "type": "JSON",
+              "format": "application/json",
+              "stream": false
+            }
+          ]
+        },
+        "parameters": {},
+        "parameter_credentials": [],
+        "runtime": null,
+        "timeout": 30.0,
+        "mappings": [],
+        "direction": null
+      }
+    ],
+    "edges": [
+      {
+        "source": "start",
+        "target": "retrieval"
+      },
+      {
+        "source": "retrieval",
+        "target": "kimi"
+      },
+      {
+        "source": "kimi",
+        "target": "full"
+      },
+      {
+        "source": "full",
+        "target": "answer"
+      },
+      {
+        "source": "answer",
+        "target": "tts"
+      },
+      {
+        "source": "tts",
+        "target": "result"
+      },
+      {
+        "source": "full",
+        "target": "result"
+      },
+      {
+        "source": "result",
+        "target": "end"
+      }
+    ],
+    "preparation_timeout": 90.0,
+    "cleanup_timeout": 10.0
+  },
+  "modules": [
+    {
+      "key": "repo-bm25",
+      "id": "repo-bm25",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "198ea8e7119e851b47a4fd6e5609cacbd60bce3a98246a6c83c1168211be30d6"
+    },
+    {
+      "key": "repo-kimi",
+      "id": "repo-kimi",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "05ff717e08e82d333e7a70667f986f5cafb14ccfc3c983c517d63292723b0cf8"
+    },
+    {
+      "key": "repo-tts",
+      "id": "repo-tts",
+      "version": "1.0.0-d101c9a45266",
+      "package_digest": "bec91f0b43c8192ede8ae96e477d6fdeb9509dca5672a2db25ba4a62604c0fa1"
+    }
+  ],
+  "repositories": [
+    {
+      "key": "testflow",
+      "name": "TestFlow open-source examples",
+      "url": "https://github.com/Minecodex/TestFlow.git",
+      "commit": "7c89f3076ab637a3467fbf3d56f2ae7fc8f09e2e"
+    }
+  ],
+  "credentials": [
+    {
+      "key": "kimi",
+      "name": "Kimi Code",
+      "kind": "module"
+    }
+  ]
+}

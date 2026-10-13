@@ -1,4 +1,16 @@
 export const evaluationZh = {
+  apiKey: "模型 API Key",
+  keyPlaceholder: "输入模型服务凭证",
+  keySaved: "已保存，留空保留现有凭证",
+  keyHint: "凭证加密保存，留空保留；不会写入配置快照、导出或浏览器草稿。",
+  clearKey: "删除已保存凭证",
+  correctness: "答案正确性",
+  defaultJudgment: "根据原始输入判断实际输出是否正确、完整且有依据。没有标准答案；不得自行虚构缺失的材料，无法判断时说明原因。",
+
+  unnamedDimension: "未命名维度",
+  noRules: "未配置规则",
+  noModel: "不使用模型",
+  modelMissing: "未配置模型",
   currentProfile: "当前查看",
   viewConfig: "查看配置",
   editConfig: "编辑配置",
@@ -60,6 +72,18 @@ export const evaluationZh = {
   },
 };
 export const evaluationEn = {
+  apiKey: "Model API key",
+  keyPlaceholder: "Enter the model service credential",
+  keySaved: "Saved. Leave empty to keep the existing credential",
+  keyHint: "Encrypted storage. Empty retains the existing key. Excluded from snapshots, exports and browser drafts.",
+  clearKey: "Remove saved credential",
+  correctness: "Answer correctness",
+  defaultJudgment: "Judge actual output correctness, completeness and grounding from the original input. There is no expected answer. Never invent missing material; explain when the available evidence is insufficient.",
+
+  unnamedDimension: "Unnamed dimension",
+  noRules: "No rules configured",
+  noModel: "No model",
+  modelMissing: "No model configured",
   currentProfile: "Currently selected",
   viewConfig: "View configuration",
   editConfig: "Edit configuration",

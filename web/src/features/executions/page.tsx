@@ -1,5 +1,6 @@
 import { useCompactDateTime } from "../../shared/ui/date-time";
 import { TraceTimeline } from "./trace";
+import { ExecutionMediaPreview, executionPreview } from "./preview";
 import { ExecutionMaterials, ExecutionSummary } from "./materials";
 import { JudgeIcon } from "../../shared/icons";
 import { useResourceOptions } from "../../shared/api/hooks";
@@ -388,8 +389,7 @@ export function ExecutionDetail({ execution }: { execution: Execution }) {
     <>
       <Head
         title={caseSnapshot?.name || execution.name}
-        description={`${execution.id} · ${graph.name} v${graph.selected_version}`}
-        eyebrow="EXECUTION / DETAIL"
+        meta={`${execution.id} · ${graph.name} v${graph.selected_version}`}
         actions={
           <>
             <Action
@@ -592,8 +592,6 @@ export function ExecutionsPage() {
     <>
       <Head
         title={t.executions.title}
-        description={t.executions.description}
-        eyebrow="OBSERVABILITY / 09"
         actions={
           <>
             {params.get("return") && (
@@ -605,10 +603,7 @@ export function ExecutionsPage() {
                 {t.common.back}
               </Action>
             )}
-            <Action action="refresh-view" onPress={() => {void query.refetch();}}>
-              <RefreshCw />
-              {t.common.refresh}
-            </Action>
+
           </>
         }
       />
@@ -679,6 +674,8 @@ export function ExecutionsPage() {
             className="testflow-history-table"
             headers={[
               t.executions.caseExecution,
+              t.executions.input,
+              t.executions.finalOutput,
               t.datasets.title,
               t.executions.pipelineColumn,
               t.executions.runColumn,
@@ -697,6 +694,8 @@ export function ExecutionsPage() {
                     {ex.id.slice(0, 8)} · {t.executions.attempt} {ex.attempt}
                   </div>
                 </div>,
+                <ExecutionMediaPreview materials={executionPreview(ex)} sourceCase={ex.snapshot.dataset ? {datasetId: (ex.snapshot.dataset as {id:string}).id, caseId: (ex.snapshot.case as {id:string}).id} : undefined} />,
+                <ExecutionMediaPreview materials={executionPreview(ex)} output />,
                 <><span className="testflow-small">{(ex.snapshot.dataset as {name?:string} | undefined)?.name || "—"}</span><div className="testflow-cell-subtitle testflow-tiny">v{(ex.snapshot.dataset as {selected_version?:number;version?:number} | undefined)?.selected_version || (ex.snapshot.dataset as {version?:number} | undefined)?.version || "—"}</div></>,
                 <><span className="testflow-small">{(ex.snapshot.pipeline as { name: string }).name}</span><div className="testflow-cell-subtitle testflow-tiny">v{(ex.snapshot.pipeline as { selected_version?:number }).selected_version || "—"}</div></>,
                 <Status value={ex.state} />,

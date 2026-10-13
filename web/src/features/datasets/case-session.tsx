@@ -9,7 +9,7 @@ import { CaseEditor, emptyCase } from "./case-editor";
 export function CaseSession({ dataset, initial, onClose }: {
   dataset: Resource<Dataset>; initial?: Case; onClose:()=>void;
 }) {
-  const draft = useVersionedDraft("testflow.case-draft."+dataset.id+"."+(initial?.id || "new"),dataset.version,{
+  const draft = useVersionedDraft("testflow.case-draft.v2."+dataset.id+"."+(initial?.id || "new"),dataset.version,{
     dataset:dataset.data, value:initial || emptyCase(dataset.data.input_schema),
   });
   const merge = (value: Case) => ({...draft.data.dataset,cases:(draft.data.dataset.cases || []).some(c=>c.id===value.id)

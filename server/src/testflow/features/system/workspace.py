@@ -13,7 +13,7 @@ router = APIRouter(prefix="/system", tags=["workspace"], dependencies=[Depends(r
 
 
 @router.get("/overview", response_model=OverviewResponse)
-async def overview(profile_id: str | None = None, profile_version: int | None = Query(None, ge=1), db=Depends(session)):
+async def overview(profile_id: str | None = None, profile_version: int | None = Query(None, ge=1), db=Depends(session, scope="function")):
     counts = dict((await db.execute(select(Resource.kind, func.count()).where(Resource.hidden.is_(False)).group_by(Resource.kind))).all())
     counts["tasks"] = await db.scalar(select(func.count()).select_from(Task).where(Task.hidden.is_(False)))
     counts["planned_cases"] = await db.scalar(select(func.count()).select_from(PlanItem).join(Task, PlanItem.task_id == Task.id).where(Task.hidden.is_(False)))
@@ -28,7 +28,7 @@ async def overview(profile_id: str | None = None, profile_version: int | None = 
 
 
 @router.get("/search")
-async def search(q: str, db=Depends(session)):
+async def search(q: str, db=Depends(session, scope="function")):
     if not q.strip(): return {"items": []}
     query = select(Resource).where(Resource.hidden.is_(False), Resource.name.ilike("%" + q + "%")).order_by(Resource.updated.desc()).limit(30)
     resources = (await db.scalars(query)).all()

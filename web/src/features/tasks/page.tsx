@@ -1,6 +1,7 @@
+import { DeleteAction } from "../../shared/ui";
 import { useCompactDateTime } from "../../shared/ui/date-time";
 import { useListState } from "../../shared/ui/list-state";
-import { Pagination } from "../../shared/ui";
+import {Pagination} from "../../shared/ui";
 import { useResourceOptions } from "../../shared/api/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -12,6 +13,8 @@ import {
 } from "react-router-dom";
 import { detailHref, safeReturn } from "../../shared/ui/navigation";
 import { ArrowRight, Clock, Database, ListChecks, Plus, Trash2, Workflow } from "lucide-react";
+import { ExecutionMediaPreview } from "../executions/preview";
+import type { MaterialPreview } from "../executions/preview";
 import { useMessages } from "../../i18n";
 import { getJson, operationKey, write } from "../../shared/api/client";
 import { useResource, useResources, useWrite } from "../../shared/api/hooks";
@@ -27,22 +30,8 @@ import type {
   TaskBody,
   Overview,
 } from "../../shared/api/types";
-import {
-  Action,
-  Badge,
-  Choice,
-  DataTable,
-  Dialog,
-  Empty,
-  Failure,
-  Head,
-  Notice,
-  Panel,
-  Status,
-  Text,
-  download,
-} from "../../shared/ui";
-import { Hide } from "../../shared/ui/resources";
+import {Action, Badge, Choice, DataTable, Dialog, Empty, Failure, Head, Notice, Panel, Status, Text, download} from "../../shared/ui";
+import { DeleteResource } from "../../shared/ui/resources";
 import { PinnedChoice } from "../../shared/ui/pinned-choice";
 import { PlanBindings, type BindingOverrides } from "../evaluation/bindings";
 import { RequestState } from "../../shared/ui/request-state";
@@ -105,7 +94,7 @@ function PairFields({
         <PlanBindings
           profile={profile.data}
           pipeline={pipeline.data.data}
-          referenceSchema={dataset.data?.data.output_schema}
+          referenceSchema={undefined}
           value={(pair.bindings || {}) as BindingOverrides}
           onChange={(bindings) => onChange({ ...pair, bindings })}
         />
@@ -257,17 +246,17 @@ function CreateTask({ onClose }: { onClose: () => void }) {
           <div className="testflow-outline testflow-stack" key={i}>
             <div className="testflow-row testflow-between">
               <Badge>{i + 1}</Badge>
-              <Action
+              <DeleteAction
                 action="remove-pair"
-                isIconOnly
+                size="sm"
                 aria-label={t.common.remove}
                 isDisabled={body.pairs.length === 1}
                 onPress={() =>
                   patch({ pairs: body.pairs.filter((_, n) => n !== i) })
                 }
               >
-                <Trash2 />
-              </Action>
+                {t.common.delete}
+              </DeleteAction>
             </div>
             <PairFields
               pair={pair}
@@ -383,8 +372,11 @@ export function ReportView({ report }: { report: Report }) {
       <Panel>
         <DataTable
           label={t.tasks.current}
+          className="testflow-report-materials-table"
           headers={[
             t.datasets.cases,
+            t.executions.input,
+            t.executions.finalOutput,
             t.tasks.pipeline,
             t.common.status,
             t.evaluation.title,
@@ -400,6 +392,8 @@ export function ReportView({ report }: { report: Report }) {
                   {row.dataset.name} · {row.repetition}
                 </div>
               </div>,
+              <ExecutionMediaPreview materials={row.materials as unknown as MaterialPreview} executionId={row.execution_id || row.active_execution_id} sourceCase={{datasetId: row.dataset.id, caseId: row.case.id}} />,
+              <ExecutionMediaPreview materials={row.materials as unknown as MaterialPreview} executionId={row.execution_id || row.active_execution_id} output />,
               `${row.pipeline.name} v${row.pipeline.version}`,
               <div className="testflow-stack">
                 <Status value={row.execution_state} />
@@ -489,7 +483,7 @@ function TaskDetail({ task }: { task: Task }) {
     <>
       <Head
         title={task.name}
-        description={new Date(task.created).toLocaleString()}
+        meta={new Date(task.created).toLocaleString()}
         actions={
           <>
             <Action
@@ -500,7 +494,7 @@ function TaskDetail({ task }: { task: Task }) {
             >
               {t.common.back}
             </Action>
-            <Hide kind="tasks" resource={task} />
+            <DeleteResource kind="tasks" resource={task} />
             <Action
               action="task-history"
               onPress={() =>
@@ -625,8 +619,6 @@ export function TasksPage() {
     <>
       <Head
         title={t.tasks.title}
-        description={t.tasks.description}
-        eyebrow="RUNS / 08"
         actions={
           <Action primary action="new-task" onPress={() => setCreating(true)}>
             <Plus />

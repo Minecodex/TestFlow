@@ -53,12 +53,12 @@ export async function assetsControls(env) {
     "boundary",
     "Closing and reopening a material drawer retains its unsubmitted reference draft",
     async () => {
-      await button("查看详情", row).click();
+      await button("编辑", row).click();
       await dialog()
         .getByRole("textbox", { name: "参考内容", exact: true })
         .fill("coverage reference");
       await button("关闭", dialog()).click();
-      await button("查看详情", row).click();
+      await button("编辑", row).click();
       await expect(
         dialog().getByRole("textbox", { name: "参考内容", exact: true }),
       ).toHaveValue("coverage reference");
@@ -73,9 +73,8 @@ export async function assetsControls(env) {
     "normal",
     "Tags and a confirmed reference create a new version without changing the original",
     async () => {
-      await dialog()
-        .getByRole("textbox", { name: "标签（逗号分隔）", exact: true })
-        .fill("coverage,immutable");
+      const tags = dialog().getByRole("textbox", { name: "标签", exact: true });
+      for (const tag of ["coverage", "immutable"]) { await tags.fill(tag); await tags.press("Enter"); }
       await ui.setChecked(dialog().getByRole("checkbox"), true);
       await button("保存", dialog()).click();
       await expect(dialog()).toHaveCount(0);
@@ -96,7 +95,7 @@ export async function assetsControls(env) {
     "normal",
     "The material drawer Close control dismisses it and returns to its source list",
     async () => {
-      await button("查看详情", row).click();
+      await button("编辑", row).click();
       await button("关闭", dialog()).click();
       await expect(dialog()).toHaveCount(0);
       await expect(row).toBeVisible();

@@ -804,6 +804,98 @@
         }
       }
     },
+    "/api/v1/modules/{module_id}/runtime": {
+      "put": {
+        "tags": [
+          "modules"
+        ],
+        "summary": "Save Runtime",
+        "operationId": "save_runtime_api_v1_modules__module_id__runtime_put",
+        "parameters": [
+          {
+            "name": "module_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Module Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModuleRuntimeUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/modules/{module_id}/validate": {
       "post": {
         "tags": [
@@ -1577,6 +1669,890 @@
         }
       }
     },
+    "/api/v1/assets/export": {
+      "post": {
+        "tags": [
+          "asset-packages"
+        ],
+        "summary": "Export Assets",
+        "operationId": "export_assets_api_v1_assets_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssetExport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/import/preview": {
+      "post": {
+        "tags": [
+          "asset-packages"
+        ],
+        "summary": "Preview",
+        "operationId": "preview_api_v1_assets_import_preview_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_preview_api_v1_assets_import_preview_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/assets/import": {
+      "post": {
+        "tags": [
+          "asset-packages"
+        ],
+        "summary": "Import Package",
+        "operationId": "import_package_api_v1_assets_import_post",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_package_api_v1_assets_import_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssetImportResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/{dataset_id}/export": {
+      "get": {
+        "tags": [
+          "dataset-transfer"
+        ],
+        "summary": "Export Version",
+        "operationId": "export_version_api_v1_datasets__dataset_id__export_get",
+        "parameters": [
+          {
+            "name": "dataset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Dataset Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/import/preview": {
+      "post": {
+        "tags": [
+          "dataset-transfer"
+        ],
+        "summary": "Preview",
+        "operationId": "preview_api_v1_datasets_import_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/datasets/import": {
+      "post": {
+        "tags": [
+          "dataset-transfer"
+        ],
+        "summary": "Import Dataset",
+        "operationId": "import_dataset_api_v1_datasets_import_post",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DatasetImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/export": {
+      "post": {
+        "tags": [
+          "workflows"
+        ],
+        "summary": "Export Draft",
+        "operationId": "export_draft_api_v1_pipelines_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PipelineBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/{pipeline_id}/export": {
+      "get": {
+        "tags": [
+          "workflows"
+        ],
+        "summary": "Export Version",
+        "operationId": "export_version_api_v1_pipelines__pipeline_id__export_get",
+        "parameters": [
+          {
+            "name": "pipeline_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Pipeline Id"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowDocument"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/import/preview": {
+      "post": {
+        "tags": [
+          "workflows"
+        ],
+        "summary": "Preview",
+        "operationId": "preview_api_v1_pipelines_import_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowImport"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pipelines/import": {
+      "post": {
+        "tags": [
+          "workflows"
+        ],
+        "summary": "Import Workflow",
+        "operationId": "import_workflow_api_v1_pipelines_import_post",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResourceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/tasks/preview": {
       "post": {
         "tags": [
@@ -2117,86 +3093,6 @@
         ],
         "summary": "Hide",
         "operationId": "hide_api_v1_tasks__task_id__hide_post",
-        "parameters": [
-          {
-            "name": "task_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Task Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        }
-      }
-    },
-    "/api/v1/tasks/{task_id}/restore": {
-      "post": {
-        "tags": [
-          "tasks"
-        ],
-        "summary": "Restore",
-        "operationId": "restore_api_v1_tasks__task_id__restore_post",
         "parameters": [
           {
             "name": "task_id",
@@ -4588,103 +5484,6 @@
         }
       }
     },
-    "/api/v1/{kind}/{resource_id}/restore": {
-      "post": {
-        "tags": [
-          "resources"
-        ],
-        "summary": "Restore",
-        "operationId": "restore_api_v1__kind___resource_id__restore_post",
-        "parameters": [
-          {
-            "name": "kind",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "enum": [
-                "repositories",
-                "modules",
-                "assets",
-                "datasets",
-                "pipelines",
-                "evaluation-profiles"
-              ],
-              "type": "string",
-              "title": "Kind"
-            }
-          },
-          {
-            "name": "resource_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Resource Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "401": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unauthorized"
-          },
-          "403": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Forbidden"
-          },
-          "409": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Conflict"
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Unprocessable Content"
-          },
-          "503": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Service Unavailable"
-          }
-        }
-      }
-    },
     "/health/live": {
       "get": {
         "tags": [
@@ -4943,6 +5742,122 @@
         ],
         "title": "AssetBody"
       },
+      "AssetExport": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/ResourceSelection"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Assets"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "assets"
+        ],
+        "title": "AssetExport"
+      },
+      "AssetImportItem": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "revision_digest": {
+            "type": "string",
+            "title": "Revision Digest"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "create",
+              "reuse"
+            ],
+            "title": "State"
+          },
+          "resource": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResourceSelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "type",
+          "revision_digest",
+          "state"
+        ],
+        "title": "AssetImportItem"
+      },
+      "AssetImportResult": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssetImportItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "created": {
+            "type": "integer",
+            "title": "Created"
+          },
+          "reused": {
+            "type": "integer",
+            "title": "Reused"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "created",
+          "reused"
+        ],
+        "title": "AssetImportResult"
+      },
+      "AssetPreview": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid",
+            "default": true
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AssetImportItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "AssetPreview"
+      },
       "Binding": {
         "properties": {
           "value": {
@@ -4990,6 +5905,34 @@
           "file"
         ],
         "title": "Body_import_module_api_v1_modules_import_post"
+      },
+      "Body_import_package_api_v1_assets_import_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_import_package_api_v1_assets_import_post"
+      },
+      "Body_preview_api_v1_assets_import_preview_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_preview_api_v1_assets_import_preview_post"
       },
       "Body_upload_api_v1_media_upload_post": {
         "properties": {
@@ -5039,16 +5982,6 @@
             },
             "type": "object",
             "title": "Inputs"
-          },
-          "reference": {
-            "additionalProperties": true,
-            "type": "object",
-            "title": "Reference"
-          },
-          "reference_confirmed": {
-            "type": "boolean",
-            "title": "Reference Confirmed",
-            "default": false
           }
         },
         "additionalProperties": false,
@@ -5171,6 +6104,54 @@
         ],
         "title": "CredentialResponse"
       },
+      "DatasetAsset": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Text",
+              "Audio",
+              "Image"
+            ],
+            "title": "Type"
+          },
+          "format": {
+            "type": "string",
+            "title": "Format"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256"
+          },
+          "revision_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Revision Digest"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "type",
+          "format",
+          "sha256",
+          "revision_digest"
+        ],
+        "title": "DatasetAsset"
+      },
       "DatasetBody": {
         "properties": {
           "name": {
@@ -5187,9 +6168,6 @@
           "input_schema": {
             "$ref": "#/components/schemas/Schema"
           },
-          "output_schema": {
-            "$ref": "#/components/schemas/Schema"
-          },
           "cases": {
             "items": {
               "$ref": "#/components/schemas/Case"
@@ -5202,10 +6180,219 @@
         "type": "object",
         "required": [
           "name",
-          "input_schema",
-          "output_schema"
+          "input_schema"
         ],
         "title": "DatasetBody"
+      },
+      "DatasetCandidate": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Id"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DatasetCandidate"
+      },
+      "DatasetDocument": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "const": "testflow.dataset.v1",
+            "title": "Format"
+          },
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetAsset"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Assets"
+          },
+          "dataset": {
+            "$ref": "#/components/schemas/PortableDataset"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "format",
+          "dataset"
+        ],
+        "title": "DatasetDocument"
+      },
+      "DatasetImport": {
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/DatasetDocument"
+          },
+          "bindings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ResourceSelection"
+            },
+            "type": "object",
+            "title": "Bindings"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document"
+        ],
+        "title": "DatasetImport"
+      },
+      "DatasetPreview": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetRequirement"
+            },
+            "type": "array",
+            "title": "Requirements"
+          },
+          "errors": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "dataset": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DatasetBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "valid",
+          "requirements",
+          "errors"
+        ],
+        "title": "DatasetPreview"
+      },
+      "DatasetRequirement": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Text",
+              "Audio",
+              "Image"
+            ],
+            "title": "Type"
+          },
+          "format": {
+            "type": "string",
+            "title": "Format"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Sha256"
+          },
+          "revision_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Revision Digest"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "missing",
+              "selection_required",
+              "invalid_binding"
+            ],
+            "title": "State"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetCandidate"
+            },
+            "type": "array",
+            "title": "Candidates"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResourceSelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "type",
+          "format",
+          "sha256",
+          "revision_digest",
+          "state",
+          "candidates"
+        ],
+        "title": "DatasetRequirement"
       },
       "Dimension": {
         "properties": {
@@ -5361,6 +6548,20 @@
               }
             ],
             "title": "Credential Id"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "password",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key",
+            "writeOnly": true
           },
           "modalities": {
             "items": {
@@ -5921,6 +7122,12 @@
             "minLength": 1,
             "title": "Name"
           },
+          "description": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Description",
+            "default": ""
+          },
           "x": {
             "type": "number",
             "title": "X",
@@ -6151,6 +7358,25 @@
         ],
         "title": "ModuleManifest"
       },
+      "ModuleRuntimeUpdate": {
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
+          "runtime": {
+            "$ref": "#/components/schemas/PodRuntime"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_version",
+          "runtime"
+        ],
+        "title": "ModuleRuntimeUpdate"
+      },
       "OperationResponse": {
         "properties": {
           "id": {
@@ -6303,6 +7529,37 @@
           "pipeline_version"
         ],
         "title": "Pair"
+      },
+      "ParameterCredential": {
+        "properties": {
+          "path": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "maxItems": 32,
+            "minItems": 1,
+            "title": "Path"
+          },
+          "credential_key": {
+            "type": "string",
+            "title": "Credential Key"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path",
+          "credential_key"
+        ],
+        "title": "ParameterCredential"
       },
       "PipelineBody": {
         "properties": {
@@ -6532,6 +7789,91 @@
           "format"
         ],
         "title": "PortField"
+      },
+      "PortableBinding": {
+        "properties": {
+          "value": {
+            "title": "Value"
+          },
+          "asset_key": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Key"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PortableBinding"
+      },
+      "PortableCase": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9_-]+$",
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "inputs": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PortableBinding"
+            },
+            "type": "object",
+            "title": "Inputs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "inputs"
+        ],
+        "title": "PortableCase"
+      },
+      "PortableDataset": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "input_schema": {
+            "$ref": "#/components/schemas/Schema"
+          },
+          "cases": {
+            "items": {
+              "$ref": "#/components/schemas/PortableCase"
+            },
+            "type": "array",
+            "maxItems": 10000,
+            "title": "Cases"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "input_schema"
+        ],
+        "title": "PortableDataset"
       },
       "QuickExecutionBody": {
         "properties": {
@@ -6826,6 +8168,11 @@
           "cleanup": {
             "type": "string",
             "title": "Cleanup"
+          },
+          "materials": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Materials"
           }
         },
         "type": "object",
@@ -7106,6 +8453,33 @@
           "data"
         ],
         "title": "ResourceResponse"
+      },
+      "ResourceSelection": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Id"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ResourceSelection"
       },
       "RevisionPageResponse": {
         "properties": {
@@ -7574,6 +8948,632 @@
           "output"
         ],
         "title": "TraceNodeResponse"
+      },
+      "WorkflowCredential": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "module",
+              "registry"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "kind"
+        ],
+        "title": "WorkflowCredential"
+      },
+      "WorkflowDocument": {
+        "properties": {
+          "format": {
+            "type": "string",
+            "const": "testflow.workflow.v1",
+            "title": "Format"
+          },
+          "pipeline": {
+            "$ref": "#/components/schemas/WorkflowPipeline"
+          },
+          "modules": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowModule"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Modules"
+          },
+          "repositories": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowRepository"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Repositories"
+          },
+          "credentials": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowCredential"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "title": "Credentials"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "format",
+          "pipeline"
+        ],
+        "title": "WorkflowDocument"
+      },
+      "WorkflowImport": {
+        "properties": {
+          "document": {
+            "$ref": "#/components/schemas/WorkflowDocument"
+          },
+          "bindings": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/WorkflowSelection"
+            },
+            "type": "object",
+            "title": "Bindings"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "document"
+        ],
+        "title": "WorkflowImport"
+      },
+      "WorkflowModule": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Key"
+          },
+          "id": {
+            "type": "string",
+            "maxLength": 128,
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "title": "Id"
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Version"
+          },
+          "package_digest": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Package Digest"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "id",
+          "version",
+          "package_digest"
+        ],
+        "title": "WorkflowModule"
+      },
+      "WorkflowMount": {
+        "properties": {
+          "repository_key": {
+            "type": "string",
+            "title": "Repository Key"
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40,64}$",
+            "title": "Commit"
+          },
+          "mount_path": {
+            "type": "string",
+            "title": "Mount Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "repository_key",
+          "commit",
+          "mount_path"
+        ],
+        "title": "WorkflowMount"
+      },
+      "WorkflowNode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "start",
+              "end",
+              "module",
+              "assembly",
+              "conversion"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4096,
+            "title": "Description",
+            "default": ""
+          },
+          "x": {
+            "type": "number",
+            "title": "X",
+            "default": 0
+          },
+          "y": {
+            "type": "number",
+            "title": "Y",
+            "default": 0
+          },
+          "module_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Module Key"
+          },
+          "input_schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Schema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "output_schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Schema"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "parameters": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Parameters"
+          },
+          "parameter_credentials": {
+            "items": {
+              "$ref": "#/components/schemas/ParameterCredential"
+            },
+            "type": "array",
+            "title": "Parameter Credentials"
+          },
+          "runtime": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowRuntime"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timeout": {
+            "type": "number",
+            "title": "Timeout",
+            "default": 30
+          },
+          "mappings": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Mappings"
+          },
+          "direction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "to_stream",
+                  "to_full"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direction"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "name"
+        ],
+        "title": "WorkflowNode"
+      },
+      "WorkflowOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Id"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "WorkflowOption"
+      },
+      "WorkflowPipeline": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "input_schema": {
+            "$ref": "#/components/schemas/Schema"
+          },
+          "output_schema": {
+            "$ref": "#/components/schemas/Schema"
+          },
+          "nodes": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNode"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 2,
+            "title": "Nodes"
+          },
+          "edges": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "maxItems": 5000,
+            "title": "Edges"
+          },
+          "preparation_timeout": {
+            "type": "number",
+            "title": "Preparation Timeout",
+            "default": 60
+          },
+          "cleanup_timeout": {
+            "type": "number",
+            "title": "Cleanup Timeout",
+            "default": 10
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "input_schema",
+          "output_schema",
+          "nodes",
+          "edges"
+        ],
+        "title": "WorkflowPipeline"
+      },
+      "WorkflowPreview": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "requirements": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowRequirement"
+            },
+            "type": "array",
+            "title": "Requirements"
+          },
+          "errors": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "pipeline": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PipelineBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "valid",
+          "requirements",
+          "errors"
+        ],
+        "title": "WorkflowPreview"
+      },
+      "WorkflowRepository": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Key"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          },
+          "commit": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{40,64}$",
+            "title": "Commit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "name",
+          "url",
+          "commit"
+        ],
+        "title": "WorkflowRepository"
+      },
+      "WorkflowRequirement": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "module",
+              "repository",
+              "credential"
+            ],
+            "title": "Kind"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "identity": {
+            "type": "string",
+            "title": "Identity"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "resolved",
+              "missing",
+              "selection_required"
+            ],
+            "title": "State"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowOption"
+            },
+            "type": "array",
+            "title": "Options"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowSelection"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "kind",
+          "name",
+          "identity",
+          "state",
+          "options"
+        ],
+        "title": "WorkflowRequirement"
+      },
+      "WorkflowRuntime": {
+        "properties": {
+          "mode": {
+            "type": "string",
+            "const": "pod",
+            "title": "Mode",
+            "default": "pod"
+          },
+          "image": {
+            "type": "string",
+            "title": "Image"
+          },
+          "port": {
+            "type": "integer",
+            "title": "Port",
+            "default": 8080
+          },
+          "code_mount": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowMount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "registry_credential_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registry Credential Key"
+          },
+          "reuse_scope": {
+            "type": "string",
+            "enum": [
+              "batch_node",
+              "execution_node"
+            ],
+            "title": "Reuse Scope",
+            "default": "batch_node"
+          },
+          "requires_sequential": {
+            "type": "boolean",
+            "title": "Requires Sequential",
+            "default": false
+          },
+          "cpu": {
+            "type": "string",
+            "title": "Cpu",
+            "default": "500m"
+          },
+          "memory": {
+            "type": "string",
+            "title": "Memory",
+            "default": "512Mi"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "title": "WorkflowRuntime"
+      },
+      "WorkflowSelection": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Id"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "WorkflowSelection"
       },
       "assetsUpdate": {
         "properties": {

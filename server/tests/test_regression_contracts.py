@@ -75,9 +75,8 @@ async def test_json_asset_shaped_data_never_grants_module_media_access(app_clien
 async def test_explicit_json_null_survives_api_freezing_execution_and_scoring(app_client):
     app, client = app_client
     schema = {'fields': [{'name': 'result', 'type': 'JSON', 'format': 'application/json', 'stream': False}]}
-    body = {'name': 'JSON null', 'input_schema': schema, 'output_schema': schema,
-            'cases': [{'id': 'null', 'name': 'Null', 'inputs': {'result': {'value': None}},
-                       'reference': {'result': None}, 'reference_confirmed': True}]}
+    body = {'name': 'JSON null', 'input_schema': schema,
+            'cases': [{'id': 'null', 'name': 'Null', 'inputs': {'result': {'value': None}}}]}
     dataset = await client.post('/api/v1/datasets', json=body)
     assert dataset.status_code == 200, dataset.text
     pipeline = (await client.post('/api/v1/pipelines', json={'name': 'JSON identity', 'input_schema': schema, 'output_schema': schema,
@@ -85,8 +84,7 @@ async def test_explicit_json_null_survives_api_freezing_execution_and_scoring(ap
                   {'id': 'end', 'kind': 'end', 'name': 'End', 'input_schema': schema, 'output_schema': schema}],
         'edges': [{'source': 'start', 'target': 'end'}]})).json()
     profile = (await client.post('/api/v1/evaluation-profiles', json={'name': 'JSON exact', 'dimensions': [
-        {'id': 'exact', 'name': 'Exact', 'method': 'exact_json', 'needs_reference': True,
-         'actual': {'source': 'output', 'field': 'result'}, 'reference': {'source': 'reference', 'field': 'result'}}]})).json()
+        {'id': 'exact', 'name': 'Exact', 'method': 'structure', 'actual': {'source': 'output', 'field': 'result'}}]})).json()
     task = (await client.post('/api/v1/tasks', json={'name': 'Null execution', 'profile_id': profile['id'], 'profile_version': 1,
         'pairs': [{'dataset_id': dataset.json()['id'], 'dataset_version': 1, 'pipeline_id': pipeline['id'], 'pipeline_version': 1}]},
         headers={'Idempotency-Key': 'json-null'})).json()

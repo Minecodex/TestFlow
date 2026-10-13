@@ -85,20 +85,15 @@ test('quality thresholds change verdict and report snapshots retain the previous
   assert.equal(d.verdict(ex, t.profile), 'fail');
 });
 
-test('CER uses an explicit node binding and preserves missing-reference evidence', async () => {
-  const d = loadDemo(), p = d.state.profiles[0];
-  const t = d.buildTask('Strict text', [{ datasetId: 'ds-text', flowId: 'flow-text' }], p, 1);
-  const ex = d.makeExecution(t, t.plan[0]); await d.runExecution(ex);
-  const evaluation = d.latestEval(ex, p), cer = evaluation.dimensions.find(v => v.kind === 'reference');
-  assert.equal(cer.applicable, false); assert.equal(evaluation.verdict, 'pass');
-  assert.equal(d.rates([ex], 'reference', p).total, 0);
-  const audio = d.buildTask('Missing reference', [pair], p, 1), audioEx = d.makeExecution(audio, audio.plan[4]);
-  audioEx.status = 'succeeded'; audioEx.winner = 'end-a';
-  const result = d.evaluationFor(audioEx, p);
-  assert.equal(result.dimensions.find(v => v.kind === 'reference').verdict, 'unscored');
-  assert.equal(result.verdict, 'incomplete');
-  const f = d.clone(d.state.flows[0]); f.nodes[0].name = '';
-  assert.ok(d.validateFlow(f).some(e => e.includes('名称不能为空')));
+test('datasets contain only inputs and model judgment uses actual flow outputs', async () => {
+  const d = loadDemo(), profile = d.state.profiles[0];
+  assert.ok(d.state.datasets.every(ds => !('outputSchema' in ds) && ds.cases.every(c => !('reference' in c) && !('confirmed' in c))));
+  const task = d.buildTask('Inputs only', [{ datasetId: 'ds-text', flowId: 'flow-text' }], profile, 1);
+  const ex = d.makeExecution(task, task.plan[0]); await d.runExecution(ex);
+  const evaluation = d.latestEval(ex, profile);
+  assert.ok(evaluation.dimensions.some(dimension => dimension.kind === 'quality'));
+  assert.ok(!evaluation.dimensions.some(dimension => dimension.kind === 'reference'));
+  assert.equal(evaluation.verdict, 'pass');
 });
 
 test('custom-named output groups render every field in declaration order', () => {
@@ -106,8 +101,9 @@ test('custom-named output groups render every field in declaration order', () =>
   ex.flowSnapshot.outputSchema = [{ name: 'picture', type: 'Image' }, { name: 'summary', type: 'Text' }, { name: 'recording', type: 'Audio', stream: true }];
   ex.output = { summary: '<safe text>', picture: { url: 'image-url' }, recording: { url: 'audio-url', stream: true, eos: true } };
   const html = d.outputPreview(ex);
-  assert.ok(html.indexOf('picture / Image') < html.indexOf('summary / Text'));
-  assert.ok(html.indexOf('summary / Text') < html.indexOf('recording / Audio'));
+  assert.ok(html.indexOf('<span>picture</span>') < html.indexOf('<span>summary</span>'));
+  assert.ok(html.indexOf('<span>summary</span>') < html.indexOf('<span>recording</span>'));
+  assert.deepEqual([...html.matchAll(/class="prototype-material-number">(\d+)/g)].map(match => match[1]), ['1', '2', '3']);
   assert.match(html, /&lt;safe text&gt;/); assert.match(html, /正常 EOS/);
   assert.match(html, /image-url/); assert.match(html, /audio-url/);
 });

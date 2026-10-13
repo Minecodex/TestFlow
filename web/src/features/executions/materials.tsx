@@ -2,6 +2,7 @@ import { useMessages } from "../../i18n";
 import type { Evaluation, Execution, Pipeline, Resource, Profile } from "../../shared/api/types";
 import { Badge, Empty, Json, Panel, Status } from "../../shared/ui";
 import { ValueMedia } from "../assets/media";
+import { MaterialLabel } from "../assets/material-label";
 
 function inputMaterial(value: unknown, captured: boolean) {
   if (captured) return value;
@@ -23,9 +24,9 @@ export function ExecutionMaterials({execution,graph,bindings,captured,targeted}:
   return <div className="testflow-grid-2 testflow-execution-materials">
     <Panel title={t.executions.input} actions={dataset?.name && <Badge>{dataset.name} v{dataset.selected_version}</Badge>}>
       <div className="testflow-stack">
-        {graph.input_schema.fields.filter(f=>f.name in bindings).map(field=><div key={field.name} tabIndex={-1}
+        {graph.input_schema.fields.map((field,index)=>field.name in bindings && <div key={field.name} tabIndex={-1}
           data-evidence-target={targeted("input",field.name)} className={targeted("input",field.name)?"testflow-evidence-selected":""}>
-          <div className="testflow-eyebrow testflow-material-label">{field.name}</div>
+          <MaterialLabel field={field} index={index} />
           <ValueMedia field={field} value={inputMaterial(bindings[field.name],captured)} framed />
         </div>)}
         <div tabIndex={-1} data-evidence-target={targeted("reference")}
@@ -42,13 +43,14 @@ export function ExecutionMaterials({execution,graph,bindings,captured,targeted}:
     </Panel>
     <Panel title={t.executions.finalOutput} actions={<Badge state={execution.winner?"ready":"pending"}>{execution.winner?t.executions.completeGroup:t.executions.noCompleteGroup}</Badge>}>
       <div className="testflow-stack">
-        {graph.output_schema.fields.filter(f=>f.name in execution.output).map(field=>{
+        {graph.output_schema.fields.map((field,index)=>{
+          if (!(field.name in execution.output)) return null;
           const value=execution.output[field.name];
           const stream=field.stream && typeof value==="object" && value!==null?value as {eos?:boolean}:undefined;
           return <div key={field.name} tabIndex={-1} data-evidence-target={targeted("output",field.name)}
             className={targeted("output",field.name)?"testflow-evidence-selected":""}>
             <div className="testflow-row testflow-between testflow-material-title">
-              <div className="testflow-eyebrow">{field.name} / {field.type}</div>
+              <MaterialLabel field={field} index={index} />
               {stream && <Badge state={stream.eos?"succeeded":"failed"}>{stream.eos?t.assets.streamComplete:t.assets.streamIncomplete}</Badge>}
             </div>
             <ValueMedia value={value} field={field} framed showStatus={false} />

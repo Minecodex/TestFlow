@@ -6,7 +6,7 @@ import struct
 from PIL import Image
 
 from testflow.core.contracts import AssetBody
-from testflow.features.assets.router import store_blob, transcode_audio
+from testflow.features.assets.processing import store_blob, transcode_audio
 from testflow.infrastructure.revisions import get_resource, save_resource
 
 

@@ -171,6 +171,7 @@ class ReportRowResponse(EvidenceResponse):
     evaluation: dict[str, Any] | None
     duration_ms: float | None
     cleanup: str
+    materials: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReportResponse(EvidenceResponse):

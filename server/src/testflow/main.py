@@ -12,7 +12,10 @@ from testflow.execution.runners.pods import PodManager
 from testflow.execution.scheduler import Scheduler
 from testflow.features.auth import router as auth_router
 from testflow.features.resources import router as resources_router
+from testflow.features.pipelines.router import router as pipelines_router
 from testflow.features.assets.router import router as media_router
+from testflow.features.assets.transfer_router import router as assets_transfer_router
+from testflow.features.datasets.router import router as datasets_router
 from testflow.features.modules.router import router as modules_router
 from testflow.features.modules.resources import router as module_resources_router
 from testflow.features.tasks.router import router as tasks_router
@@ -57,7 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="TestFlow API", version=__version__, lifespan=lifespan, responses={code:{"model":ErrorResponse} for code in [401,403,409,422,503]})
     app.include_router(system_router, prefix="/api/v1")
-    for router in [auth_router, workspace_router, modules_router, module_resources_router, media_router, tasks_router, executions_router, socket_router, live_router, resources_router]:
+    for router in [auth_router, workspace_router, modules_router, module_resources_router, media_router, assets_transfer_router, datasets_router, pipelines_router, tasks_router, executions_router, socket_router, live_router, resources_router]:
         app.include_router(router, prefix="/api/v1")
 
     @app.middleware("http")

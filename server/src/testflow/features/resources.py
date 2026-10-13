@@ -8,18 +8,27 @@ from testflow.core.contracts import AssetBody, DatasetBody, EvaluationProfileBod
 from testflow.core.responses import ResourceResponse, ResourcePageResponse, RevisionPageResponse, OperationResponse
 from testflow.core.dependencies import session
 from testflow.core.errors import fail
-from testflow.features.auth import require_admin, validate_credential
+from testflow.features.auth import cipher, require_admin, validate_credential
+from testflow.features.datasets.validation import validate_dataset
 from testflow.features.pipelines.service import resolve_graph, validate_graph
-from testflow.infrastructure.models import Operation, Resource, Revision
+from testflow.infrastructure.models import Credential, Operation, Resource, Revision
 from testflow.infrastructure.operations import enqueue, idempotent
-from testflow.infrastructure.revisions import get_resource, list_resources, save_resource, serialize
+from testflow.infrastructure.revisions import get_resource, list_resources, resource_changed, save_resource, serialize
 
 ResourceKind = Literal["repositories", "modules", "assets", "datasets", "pipelines", "evaluation-profiles"]
 router = APIRouter(dependencies=[Depends(require_admin)], tags=["resources"])
 
 
-async def validate_body(db, kind, body):
+async def validate_body(db, kind, body, request=None):
     data = body.model_dump(mode="json")
+    if kind == "evaluation-profiles" and body.api_key is not None:
+        value = body.api_key.get_secret_value().strip()
+        if not value or len(value) > 4096:
+            fail("invalid_credential", "Enter a nonempty API key of at most 4096 characters")
+        credential = Credential(name=body.name, kind="evaluation", encrypted=cipher(request).encrypt(value.encode()).decode())
+        db.add(credential)
+        await db.flush()
+        data["credential_id"] = credential.id
     if kind in {"repositories", "evaluation-profiles"}:
         await validate_credential(db, data.get("credential_id"), "git" if kind == "repositories" else "evaluation")
     if kind == "pipelines":
@@ -28,17 +37,7 @@ async def validate_body(db, kind, body):
         data = {k: v for k, v in resolved.items() if k != "nodes"}
         data["nodes"] = [n.model_dump(mode="json") for n in body.nodes]
     if kind == "datasets":
-        for c in body.cases:
-            for f in body.input_schema.fields:
-                binding = c.inputs[f.name]
-                if binding.asset_id:
-                    asset = await get_resource(db, "assets", binding.asset_id, binding.asset_version)
-                    if asset["hidden"] or asset["data"]["type"] != f.type or asset["data"]["format"] != f.format:
-                        fail("invalid_asset_binding", "Asset type and format must match the named field", fields={c.id: f.name})
-                elif f.type not in {"Text", "JSON"}:
-                    fail("media_asset_required", "Media inputs require fixed assets")
-                elif f.type == "Text" and not isinstance(binding.value, str):
-                    fail("invalid_input_literal", "Text inputs require a string literal", fields={c.id: f.name})
+        await validate_dataset(db, body)
     if kind == "assets" and body.type == "Text" and not body.blob:
         import hashlib
         content = body.text.encode("utf-8")
@@ -50,17 +49,25 @@ async def validate_body(db, kind, body):
 
 def install_writes(kind, model):
     update_model = create_model(kind.replace("-", "_") + "Update", expected_version=(int, ...), data=(model, ...))
-    async def create(body, db=Depends(session)):
+    async def create(body, request: Request, db=Depends(session, scope="function")):
         if kind == "assets" and (body.type != "Text" or body.blob or body.original_blob or body.sha256 or body.metadata):
             fail("upload_required", "Create media using the validated upload endpoint")
-        return await save_resource(db, kind, await validate_body(db, kind, body))
-    async def update(resource_id: str, body, db=Depends(session)):
-        data = await validate_body(db, kind, body.data)
+        return await save_resource(db, kind, await validate_body(db, kind, body, request))
+    async def update(resource_id: str, body, request: Request, db=Depends(session, scope="function")):
+        data = await validate_body(db, kind, body.data, request)
         if kind == "assets":
             previous = await get_resource(db, kind, resource_id, body.expected_version)
+            if body.data.type != previous["data"]["type"]:
+                fail("immutable_asset_type", "Changing an asset type requires a new upload")
             for key in ["blob", "original_blob", "sha256", "size", "metadata", "type", "format", "source"]:
                 data[key] = previous["data"][key]
-            data["text"] = previous["data"]["text"]
+            if previous["data"]["type"] == "Text":
+                from testflow.features.assets.processing import store_blob
+                content = body.data.text.encode("utf-8")
+                blob, checksum = store_blob(request.app.state.settings.data_dir.resolve(), content, ".txt")
+                data.update(text=body.data.text, blob=blob, sha256=checksum, size=len(content))
+            else:
+                data["text"] = previous["data"]["text"]
         return await save_resource(db, kind, data, resource_id, body.expected_version)
     create.__annotations__["body"] = model
     update.__annotations__["body"] = update_model
@@ -76,20 +83,20 @@ for kind, model in {"repositories": RepositoryBody, "assets": AssetBody, "datase
 
 
 @router.get("/operations/{operation_id}", response_model=OperationResponse)
-async def operation(operation_id: str, db=Depends(session)):
+async def operation(operation_id: str, db=Depends(session, scope="function")):
     row = await db.get(Operation, operation_id)
     if not row: fail("not_found", "Operation not found", 404)
     return serialize(row)
 
 
 @router.post("/pipelines/validate")
-async def pipeline_validate(body: PipelineBody, db=Depends(session)):
+async def pipeline_validate(body: PipelineBody, db=Depends(session, scope="function")):
     graph = await resolve_graph(db, body)
     return {"valid": not (errors := validate_graph(graph)), "errors": errors, "graph": graph}
 
 
 @router.post("/repositories/{resource_id}/sync", response_model=OperationResponse)
-async def repository_sync(resource_id: str, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def repository_sync(resource_id: str, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     async def create():
         repo = await get_resource(db, "repositories", resource_id)
         if repo["hidden"]: fail("hidden_resource", "Restore the repository first")
@@ -98,7 +105,7 @@ async def repository_sync(resource_id: str, idempotency_key: str = Header(..., m
 
 
 @router.get("/{kind}", response_model=ResourcePageResponse)
-async def resources(kind: ResourceKind, hidden: bool = False, search: str = "", type: Literal["Text", "Audio", "Image"] | None = None, page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100), db=Depends(session)):
+async def resources(kind: ResourceKind, hidden: bool = False, search: str = "", type: Literal["Text", "Audio", "Image"] | None = None, page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100), db=Depends(session, scope="function")):
     result = await list_resources(db, kind, hidden, search, page, page_size, asset_type=type)
     if kind == "repositories":
         ops = (await db.scalars(select(Operation).where(Operation.kind == "repository.sync").order_by(Operation.created.desc()))).all()
@@ -116,26 +123,21 @@ async def resources(kind: ResourceKind, hidden: bool = False, search: str = "", 
 
 
 @router.get("/{kind}/{resource_id}", response_model=ResourceResponse)
-async def resource(kind: ResourceKind, resource_id: str, version: int | None = None, db=Depends(session)):
+async def resource(kind: ResourceKind, resource_id: str, version: int | None = None, db=Depends(session, scope="function")):
     return await get_resource(db, kind, resource_id, version)
 
 
 @router.get("/{kind}/{resource_id}/versions", response_model=RevisionPageResponse)
-async def versions(kind: ResourceKind, resource_id: str, db=Depends(session)):
+async def versions(kind: ResourceKind, resource_id: str, db=Depends(session, scope="function")):
     await get_resource(db, kind, resource_id)
     rows = (await db.scalars(select(Revision).where(Revision.resource_id == resource_id).order_by(Revision.number.desc()))).all()
     return {"items": [serialize(r) for r in rows]}
 
 
 @router.post("/{kind}/{resource_id}/hide")
-async def hide(kind: ResourceKind, resource_id: str, db=Depends(session)):
+async def hide(kind: ResourceKind, resource_id: str, db=Depends(session, scope="function")):
     await get_resource(db, kind, resource_id, lock=True)
-    (await db.get(Resource, resource_id)).hidden = True
+    resource = await db.get(Resource, resource_id)
+    resource.hidden = True
+    await resource_changed(db, kind, resource_id, resource.version, True)
     return {"hidden": True}
-
-
-@router.post("/{kind}/{resource_id}/restore")
-async def restore(kind: ResourceKind, resource_id: str, db=Depends(session)):
-    await get_resource(db, kind, resource_id, lock=True)
-    (await db.get(Resource, resource_id)).hidden = False
-    return {"hidden": False}

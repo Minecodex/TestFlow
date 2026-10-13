@@ -6,14 +6,14 @@ from fastapi.responses import FileResponse
 from testflow.core.contracts import AssetBody
 from testflow.core.dependencies import session
 from testflow.core.errors import fail
-from testflow.features.assets.router import store_blob
+from testflow.features.assets.processing import store_blob
 from testflow.infrastructure.models import Execution, Runtime
 from testflow.infrastructure.revisions import get_resource, save_resource
 
 router = APIRouter(prefix="/module-resources", tags=["module resources"])
 
 
-async def module_access(runtime_id: str, request: Request, execution_id: str = Query(...), authorization: str = Header(""), db=Depends(session)):
+async def module_access(runtime_id: str, request: Request, execution_id: str = Query(...), authorization: str = Header(""), db=Depends(session, scope="function")):
     runtime = await db.get(Runtime, runtime_id)
     execution = await db.get(Execution, execution_id)
     if not runtime or runtime.state != "ready" or not authorization.startswith("Bearer "):
@@ -55,7 +55,7 @@ def invocation_asset_ids(execution):
 
 
 @router.get("/{runtime_id}/assets/{asset_id}")
-async def read_input(runtime_id: str, asset_id: str, version: int, request: Request, access=Depends(module_access), db=Depends(session)):
+async def read_input(runtime_id: str, asset_id: str, version: int, request: Request, access=Depends(module_access), db=Depends(session, scope="function")):
     runtime, execution = access
     asset = await get_resource(db, "assets", asset_id, version)
     allowed = invocation_asset_ids(execution)
@@ -68,12 +68,12 @@ async def read_input(runtime_id: str, asset_id: str, version: int, request: Requ
 
 
 @router.post("/{runtime_id}/assets")
-async def write_output(runtime_id: str, request: Request, type: str, format: str, file: UploadFile = File(...), access=Depends(module_access), db=Depends(session)):
+async def write_output(runtime_id: str, request: Request, type: str, format: str, file: UploadFile = File(...), access=Depends(module_access), db=Depends(session, scope="function")):
     runtime, execution = access
     content = await file.read(request.app.state.settings.max_upload_bytes + 1)
     if not content or len(content) > request.app.state.settings.max_upload_bytes: fail("upload_too_large", "Empty or oversized output", 413)
     from pathlib import Path
-    from testflow.features.assets.router import transcode_audio
+    from testflow.features.assets.processing import transcode_audio
     import io
     metadata = {"runtime_id": runtime_id, "execution_id": execution.id}
     extension = ".bin"
@@ -96,7 +96,7 @@ async def write_output(runtime_id: str, request: Request, type: str, format: str
 
 
 @router.get("/{runtime_id}/credentials/{credential_id}")
-async def read_credential(runtime_id: str, credential_id: str, request: Request, access=Depends(module_access), db=Depends(session)):
+async def read_credential(runtime_id: str, credential_id: str, request: Request, access=Depends(module_access), db=Depends(session, scope="function")):
     from testflow.features.auth import credential_value, validate_credential
     from testflow.infrastructure.redaction import credential_refs, credential_strings
     runtime, execution = access

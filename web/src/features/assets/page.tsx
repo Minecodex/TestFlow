@@ -1,128 +1,19 @@
+import { EditAction } from "../../shared/ui";
 import { FileInput } from "../../shared/ui/file-input";
 import { useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Mic, Plus, Upload } from "lucide-react";
 import { HistoryIcon } from "../../shared/icons";
 import { useMessages } from "../../i18n";
-import { ApiError, write } from "../../shared/api/client";
+import { write } from "../../shared/api/client";
 import { useResource, useResources, useWrite } from "../../shared/api/hooks";
 import type { Asset, Resource } from "../../shared/api/types";
-import {
-  Action,
-  Badge,
-  Check,
-  Choice,
-  DataTable,
-  Dialog,
-  Empty,
-  Failure,
-  Head,
-  Json,
-  Notice,
-  Pagination,
-  Panel,
-  Text,
-} from "../../shared/ui";
-import { Hide, Versions } from "../../shared/ui/resources";
+import {Action, Badge, Check, Choice, DataTable, Dialog, Empty, Failure, Head, Json, Notice, Pagination, Panel, Text} from "../../shared/ui";
+import { DeleteResource, Versions } from "../../shared/ui/resources";
 import { AssetMedia } from "./media";
+import { AssetEditor } from "./editor";
 import { Recording } from "./recording";
-import { DraftConflict } from "../../shared/ui/draft-conflict";
-import { useVersionedDraft } from "../../shared/ui/versioned-draft";
-function Detail({
-  asset,
-  onClose,
-}: {
-  asset: Resource<Asset>;
-  onClose: () => void;
-}) {
-  const t = useMessages();
-  const draft = useVersionedDraft("testflow.asset-draft."+asset.id,asset.version,asset.data);
-  const { data, setData } = draft;
-  const patch = (v: Partial<Asset>) => setData({ ...data, ...v });
-  const save = useWrite(() =>
-    write(
-      `/assets/${asset.id}`,
-      { expected_version: draft.baseVersion, data },
-      "PUT",
-    ),
-  );
-  const conflict = asset.version > draft.baseVersion || (save.error instanceof ApiError && save.error.status===409);
-  return (
-    <Dialog
-      drawer
-      title={asset.name}
-      onClose={()=>{if(!save.isPending) onClose();}}
-      footer={
-        <>
-          <Hide kind="assets" resource={asset} />
-          <Action
-            primary
-            isPending={save.isPending}
-            isDisabled={conflict}
-            onPress={() => save.mutate(undefined, { onSuccess: ()=>{draft.clear();onClose();} })}
-          >
-            {t.common.save}
-          </Action>
-        </>
-      }
-    >
-      <div className="testflow-stack">
-        {conflict && <DraftConflict kind="assets" id={asset.id} draft={data} onContinue={latest=>{draft.setBaseVersion(latest.version);save.reset();}} />}
-        <Badge>
-          {data.type} · {data.format}
-        </Badge>
-        <AssetMedia asset={asset} />
-        <Text
-          label={t.common.name}
-          value={data.name}
-          onChange={(name) => patch({ name })}
-        />
-        <Text
-          label={t.assets.category}
-          value={data.category || ""}
-          onChange={(category) => patch({ category })}
-        />
-        <Text
-          label={t.assets.tags}
-          value={(data.tags || []).join(", ")}
-          onChange={(tags) =>
-            patch({
-              tags: tags
-                .split(",")
-                .map((v) => v.trim())
-                .filter(Boolean),
-            })
-          }
-        />
-        <Text
-          label={t.assets.reference}
-          value={
-            typeof data.reference === "string"
-              ? data.reference
-              : JSON.stringify(data.reference || "")
-          }
-          multiline
-          onChange={(reference) => patch({ reference })}
-        />
-        <Check
-          value={!!data.reference_confirmed}
-          onChange={(reference_confirmed) => patch({ reference_confirmed })}
-        >
-          {t.assets.confirm}
-        </Check>
-        <Failure error={save.error} />
-        <Json
-          value={{
-            sha256: data.sha256,
-            metadata: data.metadata,
-            size: data.size,
-            source: data.source,
-          }}
-        />
-      </div>
-    </Dialog>
-  );
-}
+import { AssetTransfer } from "./transfer";
 export function AssetsPage() {
   const t = useMessages();
   const { id } = useParams();
@@ -143,6 +34,7 @@ export function AssetsPage() {
     setParams(next);
   };
   const [overlay, setOverlay] = useState("");
+  const [transfer, setTransfer] = useState<"" | "import" | "export">("");
   const [files, setFiles] = useState<File[]>([]);
   const [content, setContent] = useState("");
   const [name, setName] = useState("");
@@ -172,8 +64,6 @@ export function AssetsPage() {
     <>
       <Head
         title={t.assets.title}
-        description={t.assets.description}
-        eyebrow="MATERIALS / 04"
         actions={
           <>
             <Action action="record-asset" onPress={() => setOverlay("record")}>
@@ -195,31 +85,59 @@ export function AssetsPage() {
           </>
         }
       />
-      <div className="testflow-toolbar testflow-asset-filters">
+      <div className="testflow-toolbar testflow-asset-filters testflow-transfer-toolbar">
         <div className="testflow-row">
-        <Text
-          label={t.common.search}
-          placeholder={t.assets.search}
-          value={params.get("q") || ""}
-          onChange={(q) => {
-            const next=new URLSearchParams(params); next.delete("page");
-            if(q) next.set("q",q); else next.delete("q"); setParams(next);
-          }}
-        />
-        <Choice
-          label={t.common.fieldType}
-          value={type}
-          onChange={setType}
-          options={[
-            { id: "__all", name: t.assets.allAssets },
-            ...["Text", "Image", "Audio"].map((id) => ({ id, name: id })),
-          ]}
-        />
-        <span className="testflow-small testflow-muted">{query.data?.total || 0} {t.assets.assetUnit}</span>
+          <Text
+            label={t.common.search}
+            placeholder={t.assets.search}
+            value={params.get("q") || ""}
+            onChange={(q) => {
+              const next = new URLSearchParams(params);
+              next.delete("page");
+              if (q) next.set("q", q);
+              else next.delete("q");
+              setParams(next);
+            }}
+          />
+          <Choice
+            label={t.common.fieldType}
+            value={type}
+            onChange={setType}
+            options={[
+              { id: "__all", name: t.assets.allAssets },
+              ...["Text", "Image", "Audio"].map((id) => ({ id, name: t.common.types[id as keyof typeof t.common.types] })),
+            ]}
+          />
+          <span className="testflow-small testflow-muted">
+            {query.data?.total || 0} {t.assets.assetUnit}
+          </span>
         </div>
-        <Badge>{t.assets.confirmedShort} {items.filter(a=>a.data.reference_confirmed).length} / {t.assets.unconfirmedShort} {items.filter(a=>!a.data.reference_confirmed).length}{(query.data?.total || 0) > items.length ? " · "+t.assets.currentPage : ""}</Badge>
+        <div className="testflow-row testflow-wrap">
+          <Action
+            action="import-asset-package"
+            onPress={() => setTransfer("import")}
+          >
+            {t.assets.importPackage}
+          </Action>
+          <Action
+            action="export-asset-package"
+            onPress={() => setTransfer("export")}
+          >
+            {t.assets.exportPackage}
+          </Action>
+          <Badge>
+            {t.assets.confirmedShort}{" "}
+            {items.filter((a) => a.data.reference_confirmed).length} /{" "}
+            {t.assets.unconfirmedShort}{" "}
+            {items.filter((a) => !a.data.reference_confirmed).length}
+            {(query.data?.total || 0) > items.length
+              ? " · " + t.assets.currentPage
+              : ""}
+          </Badge>
+        </div>
       </div>
       <Failure error={query.error} />
+      <AssetTransfer mode={transfer} onClose={() => setTransfer("")} />
       <Panel>
         {items.length ? (
           <DataTable
@@ -237,36 +155,77 @@ export function AssetsPage() {
               cells: [
                 <div>
                   <div className="testflow-row testflow-asset-identity">
-                  <Action variant="ghost" className="testflow-link testflow-cell-title" action="asset-detail" onPress={()=>navigate("/assets/"+a.id)}>{a.name}</Action>
-                  <Action size="sm" variant="ghost" isIconOnly className="testflow-asset-version" aria-label={t.common.versions} onPress={() => setVersions(a)}><HistoryIcon /></Action>
+                    <Action
+                      variant="ghost"
+                      className="testflow-link testflow-cell-title"
+                      action="asset-detail"
+                      onPress={() => navigate("/assets/" + a.id)}
+                    >
+                      {a.name}
+                    </Action>
+                    <Action
+                      size="sm"
+                      variant="ghost"
+                      isIconOnly
+                      className="testflow-asset-version"
+                      aria-label={t.common.versions}
+                      onPress={() => setVersions(a)}
+                    >
+                      <HistoryIcon />
+                    </Action>
                   </div>
-                  <div className="testflow-row-subtitle testflow-muted">{a.data.type} · {a.data.format}{a.data.metadata?.description ? " · "+String(a.data.metadata.description) : ""}</div>
+                  <div className="testflow-row-subtitle testflow-muted">
+                    {t.common.types[a.data.type]} · {a.data.format}
+                    {a.data.metadata?.description
+                      ? " · " + String(a.data.metadata.description)
+                      : ""}
+                  </div>
                 </div>,
-                <AssetMedia asset={a} compact />,
+                a.data.type === "Text" ? <button type="button" className="testflow-media-open" aria-label={`${t.common.edit} ${a.name}`} onClick={() => navigate("/assets/" + a.id)}><AssetMedia asset={a} compact /></button> : <AssetMedia asset={a} compact />,
                 <div>
-                  <p className="testflow-small testflow-material-summary">{a.data.text || (typeof a.data.reference === "string" ? a.data.reference : a.data.reference ? JSON.stringify(a.data.reference) : "") || t.assets.noReference}</p>
-                  <div className="testflow-reference-state"><Badge state={a.data.reference_confirmed ? "ready" : "pending"}>
-                  {a.data.reference_confirmed
-                    ? t.assets.referenceConfirmed
-                    : t.assets.referenceUnconfirmed}
-                  </Badge>
+                  <p className="testflow-small testflow-material-summary">
+                    {a.data.text ||
+                      (typeof a.data.reference === "string"
+                        ? a.data.reference
+                        : a.data.reference
+                          ? JSON.stringify(a.data.reference)
+                          : "") ||
+                      t.assets.noReference}
+                  </p>
+                  {a.data.type === "Text" && a.data.reference != null && String(a.data.reference) !== a.data.text && <div className="testflow-small testflow-muted">{t.assets.reference}: {typeof a.data.reference === "string" ? a.data.reference : JSON.stringify(a.data.reference)}</div>}
+                  <div className="testflow-reference-state">
+                    <Badge
+                      state={a.data.reference_confirmed ? "ready" : "pending"}
+                    >
+                      {a.data.reference_confirmed
+                        ? t.assets.referenceConfirmed
+                        : t.assets.referenceUnconfirmed}
+                    </Badge>
                   </div>
                 </div>,
                 <div className="testflow-small testflow-muted">
-                  <p className="testflow-asset-category">{a.data.category || "—"}</p>
-                  <span className="testflow-chips">{(a.data.tags || []).map(tag=><span className="testflow-tag" key={tag}>{tag}</span>)}</span>
+                  <p className="testflow-asset-category">
+                    {a.data.category || "—"}
+                  </p>
+                  <span className="testflow-chips">
+                    {(a.data.tags || []).map((tag) => (
+                      <span className="testflow-tag" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </span>
                 </div>,
                 <div className="testflow-row-actions">
-                  <Action
+                  <EditAction
                     size="sm"
                     variant="ghost"
                     action="asset-detail"
-                    aria-label={t.common.details}
+                    aria-label={t.common.edit}
                     onPress={() => navigate("/assets/" + a.id)}
                   >
                     {t.common.edit}
-                  </Action>
-                  <Hide kind="assets" resource={a} iconOnly />
+                  </EditAction>
+                  <DeleteResource kind="assets" resource={a} />
                 </div>,
               ],
             }))}
@@ -283,10 +242,10 @@ export function AssetsPage() {
         />
       </Panel>
       {selected.data && (
-        <Detail
+        <AssetEditor
           key={selected.data.id}
           asset={selected.data}
-          onClose={() => navigate("/assets")}
+          onClose={() => navigate("/assets" + (params.toString() ? "?" + params.toString() : ""))}
         />
       )}
       <Failure error={selected.error} />

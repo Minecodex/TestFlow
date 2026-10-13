@@ -1,4 +1,7 @@
 export const commonZh = {
+  configureCredential: "配置访问凭据",
+  types: {Text: "文字", Audio: "音频", Image: "图片", JSON: "JSON"},
+  input: "输入", output: "输出", expand: "展开", collapse: "收起",
   errors: {
     unauthenticated: "会话已失效，请重新登录。",
     database_unavailable: "服务暂时不可用，请重试。",
@@ -21,7 +24,7 @@ export const commonZh = {
   schemaFormat: "格式为必填项，最多 128 字符。",
   restoreConfirm: "恢复后可用于新配置，原有版本和历史继续保留。",
   aboutDescription:
-    "仓库、模块、素材、流程和评测均引用固定版本。每一次执行保留输入输出、事件、评分和报告历史。",
+    "日常素材引用跟随全局更新，创建任务时冻结实际素材、代码、流程和评测版本。每一次执行保留输入输出、事件、评分和报告历史。",
   resourceGroup: "资源接入",
   testingGroup: "测试编排",
   observabilityGroup: "运行与观测",
@@ -50,12 +53,12 @@ export const commonZh = {
   save: "保存",
   create: "创建",
   edit: "编辑",
-  hide: "隐藏",
+  delete: "删除",
   restore: "恢复",
-  hiddenResources: "隐藏资源",
-  hiddenResourcesLabel: "已隐藏资源",
-  hideConfirm: "隐藏后不能用于新执行，已有版本和历史仍保留。",
-  confirmHide: "确认隐藏",
+  deletedResources: "已删除资源",
+  deletedResourcesLabel: "回收站",
+  deleteConfirm: "确认删除此资源？删除后不能用于新配置或执行，仅可通过数据库恢复。已有版本和历史记录继续保留。",
+  confirmDelete: "确认删除",
   retry: "重试",
   success: "操作成功",
   submitted: "操作已提交",
@@ -99,7 +102,7 @@ export const commonZh = {
   unconfirmed: "未确认参考",
   parameters: "模块参数",
   select: "请选择",
-  remove: "移除",
+  remove: "删除",
   status: "状态",
   actions: "操作",
   clear: "清空筛选",
@@ -135,6 +138,9 @@ export const commonZh = {
   },
 };
 export const commonEn = {
+  configureCredential: "Configure access credential",
+  types: {Text: "Text", Audio: "Audio", Image: "Image", JSON: "JSON"},
+  input: "Input", output: "Output", expand: "Expand", collapse: "Collapse",
   errors: {
     unauthenticated: "Your session expired. Please sign in again.",
     database_unavailable:
@@ -162,7 +168,7 @@ export const commonEn = {
   restoreConfirm:
     "Restored resources become available to new configurations. Versions and history are retained.",
   aboutDescription:
-    "Repositories, modules, assets, pipelines and evaluation profiles use fixed versions. Every run retains its inputs, outputs, events, scores and report history.",
+    "Everyday asset references follow shared updates. Tasks freeze the actual asset, code, pipeline and evaluation revisions. Every run retains its inputs, outputs, events, scores and report history.",
   resourceGroup: "RESOURCE ACCESS",
   testingGroup: "TEST ORCHESTRATION",
   observabilityGroup: "OBSERVABILITY",
@@ -192,13 +198,13 @@ export const commonEn = {
   save: "Save",
   create: "Create",
   edit: "Edit",
-  hide: "Hide",
+  delete: "Delete",
   restore: "Restore",
-  hiddenResources: "Hidden resources",
-  hiddenResourcesLabel: "Hidden resources",
-  hideConfirm:
-    "Hidden resources cannot be used for new executions. Versions and history remain available.",
-  confirmHide: "Confirm hide",
+  deletedResources: "Deleted resources",
+  deletedResourcesLabel: "Recycle bin",
+  deleteConfirm:
+    "Delete this resource? It will be unavailable for new configurations or executions. Recovery requires a database change. Versions and history remain available.",
+  confirmDelete: "Confirm delete",
   retry: "Retry",
   success: "Operation succeeded",
   submitted: "Action submitted",
@@ -242,7 +248,7 @@ export const commonEn = {
   unconfirmed: "Unconfirmed reference",
   parameters: "Module parameters",
   select: "Select an option",
-  remove: "Remove",
+  remove: "Delete",
   status: "Status",
   actions: "Actions",
   clear: "Clear filters",

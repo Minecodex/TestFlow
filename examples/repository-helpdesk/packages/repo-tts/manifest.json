@@ -1,0 +1,20 @@
+{
+  "protocol": "testflow.module.v1",
+  "id": "repo-tts",
+  "name": "Repository tiny TTS",
+  "version": "1.0.0-d101c9a45266",
+  "description": "Thin adapter importing business code from the pinned TestFlow Git mount",
+  "exposes_trace": true,
+  "defaults": {
+    "speed": 150
+  },
+  "runtime": {
+    "mode": "pod",
+    "image": "testflow/repo-tts:v1.0.0-d101c9a45266",
+    "port": 8080,
+    "reuse_scope": "batch_node",
+    "requires_sequential": false,
+    "cpu": "500m",
+    "memory": "384Mi"
+  }
+}

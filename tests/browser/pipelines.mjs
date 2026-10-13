@@ -3,10 +3,25 @@ import { expect } from "@playwright/test";
 
 export async function pipelinesControls(env) {
   const { ui, ledger, names, state } = env,
-    { page, button, dialog, api, resource } = ui;
+    { page, button: rawButton, dialog: allDialogs, api, resource } = ui;
+  const dialog = () => allDialogs().last();
   const nodes = () => page.locator(".react-flow__node"),
     edges = () => page.locator(".react-flow__edge");
   const node = (id) => page.locator('.react-flow__node[data-id="' + id + '"]');
+  const closeInspector = async () => {
+    while (await page.locator(".testflow-node-drawer").count()) await dialog().press("Escape");
+  };
+  const inspectNode = async id => {
+    await closeInspector(); await node(id).click(); await expect(page.locator(".testflow-node-drawer")).toBeVisible();
+  };
+  const button = (name, scope = page) => {
+    const locator = rawButton(name, scope);
+    const toolbar = ["适应画布", "放大", "缩小", "恢复上次保存", "校验流程", "流程列表", "导出流程", "快速运行", "添加节点"];
+    return new Proxy(locator, {get(target, property) {
+      if (property === "click" && scope === page && toolbar.includes(name)) return async options => { await closeInspector(); return target.click(options); };
+      const value = Reflect.get(target, property, target); return typeof value === "function" ? value.bind(target) : value;
+    }});
+  };
   const point = async (locator) => {
     const isPath=await locator.evaluate(element=>element instanceof SVGPathElement);
     if(isPath) {
@@ -220,7 +235,7 @@ export async function pipelinesControls(env) {
         page.locator(".react-flow__edge-interaction").first(),
       );
       await page.mouse.click(...xy);
-      await button("移除", dialog()).click();
+      await button("删除", dialog()).click();
       await expect(edges()).toHaveCount(0);
       return { edges: 0, draft_changed: true };
     },
@@ -257,68 +272,30 @@ export async function pipelinesControls(env) {
       return { clean_revert_disabled: true };
     },
   );
-  await ledger.verify(
-    ["flow-schema"],
-    "normal",
-    "Open ordered input/output groups; clicking the visible checkbox square toggles the value",
-    async () => {
-      await button("编辑流程字段组").click();
-      await expect(
-        dialog().getByRole("textbox", { name: "字段名", exact: true }),
-      ).toHaveCount(2);
-      const checkbox = dialog().getByRole("checkbox").first();
-      const square = dialog().locator('[data-slot="checkbox-control"]').first();
-      await expect(checkbox).not.toBeChecked();
-      await square.click();
-      await expect(checkbox).toBeChecked();
-      await square.click();
-      await expect(checkbox).not.toBeChecked();
-      return {
-        input_group: true,
-        output_group: true,
-        checkbox_mouse_toggle: true,
-      };
-    },
-  );
-  await ledger.verify(
-    ["flow-schema", "save-flow-schema"],
-    "negative",
-    "Duplicate schema names disable save and cancel preserves the saved groups",
-    async () => {
-      await button("新增字段", dialog()).first().click();
-      await dialog()
-        .getByRole("textbox", { name: "字段名", exact: true })
-        .nth(1)
-        .fill("text");
-      await expect(button("保存", dialog())).toBeDisabled();
-      await button("取消", dialog()).click();
-      expect(
-        (await api("get", "/pipelines/" + state.pipeline.id)).data.input_schema
-          .fields,
-      ).toHaveLength(1);
-      return { duplicate_blocked: true, saved_schema_retained: true };
-    },
-  );
-  await ledger.verify(
-    ["save-flow-schema"],
-    "normal",
-    "Valid group edits return to the canvas with ordered names preserved",
-    async () => {
-      await button("编辑流程字段组").click();
-      await button("保存", dialog()).click();
-      await expect(dialog()).toHaveCount(0);
-      await expect(node("start").locator(".testflow-chips")).toContainText(
-        "text",
-      );
-      return { ordered_input: ["text"], ordered_output: ["text"] };
-    },
-  );
+  await ledger.verify(["flow-schema"], "normal", "Start edits its ordered input in the node drawer", async () => {
+    await inspectNode("start");
+    await expect(dialog().getByRole("textbox", {name:"字段名",exact:true})).toHaveCount(1);
+    const checkbox=dialog().getByRole("checkbox").first(), square=dialog().locator('[data-slot="checkbox-control"]').first();
+    await square.click(); await expect(checkbox).toBeChecked(); await square.click(); await expect(checkbox).not.toBeChecked();
+    return {input_group:true,checkbox_mouse_toggle:true};
+  });
+  await ledger.verify(["flow-schema","save-flow-schema"], "negative", "Duplicate names block version save and explicit revert restores the original group", async () => {
+    await button("新增字段",dialog()).click(); await dialog().getByRole("textbox",{name:"字段名",exact:true}).nth(1).fill("text");
+    await expect(page.locator('[data-a="save-flow"]').first()).toBeDisabled(); await closeInspector(); await button("恢复上次保存").click();
+    expect((await api("get","/pipelines/"+state.pipeline.id)).data.input_schema.fields).toHaveLength(1);
+    return {duplicate_blocked:true,saved_schema_retained:true};
+  });
+  await ledger.verify(["save-flow-schema"], "normal", "Start and End have separate drawers with the shared ordered contract", async () => {
+    await inspectNode("end"); await expect(dialog().getByRole("textbox",{name:"字段名",exact:true})).toHaveValue("text");
+    await closeInspector(); await expect(node("start").locator(".testflow-chips")).toContainText("text");
+    return {ordered_input:["text"],ordered_output:["text"]};
+  });
   await ledger.verify(
     ["disconnect-node"],
     "normal",
     "Disconnect the selected End input without deleting its node",
     async () => {
-      await node("end").click();
+      await inspectNode("end");
       await button("断开输入连线").click();
       await expect(edges()).toHaveCount(0);
       await expect(node("end")).toBeVisible();
@@ -341,14 +318,14 @@ export async function pipelinesControls(env) {
     "normal",
     "Add a selected assembly node with a distinct identity",
     async () => {
+      await button("添加节点").click();
       await button("字段组装", page.locator(".testflow-palette")).click();
       await expect(nodes()).toHaveCount(3);
       state.assembly = await nodes()
         .filter({ hasText: "字段组装" })
         .getAttribute("data-id");
-      await expect(page.locator(".testflow-inspector")).toContainText(
-        "明确的来源字段映射",
-      );
+      await inspectNode(state.assembly);
+      await expect(page.locator(".testflow-node-settings")).toContainText("明确的来源字段映射");
       return { assembly: state.assembly };
     },
   );
@@ -357,7 +334,7 @@ export async function pipelinesControls(env) {
     "normal",
     "Assembly output groups can be edited independently",
     async () => {
-      await button("输出字段组", page.locator(".testflow-inspector")).click();
+      await button("输出字段组", page.locator(".testflow-node-settings")).click();
       await expect(
         dialog().getByRole("textbox", { name: "字段名", exact: true }),
       ).toHaveCount(1);
@@ -383,10 +360,10 @@ export async function pipelinesControls(env) {
     "normal",
     "Save a valid assembly group and return to its mapping panel",
     async () => {
-      await button("输出字段组", page.locator(".testflow-inspector")).click();
+      await button("输出字段组", page.locator(".testflow-node-settings")).click();
       await button("保存", dialog()).click();
-      await expect(dialog()).toHaveCount(0);
-      await expect(page.locator(".testflow-inspector")).toContainText(
+      await expect(dialog()).toHaveCount(1);
+      await expect(page.locator(".testflow-node-settings")).toContainText(
         "明确的来源字段映射",
       );
       return { assembly_group_saved_to_draft: true };
@@ -400,11 +377,11 @@ export async function pipelinesControls(env) {
     async () => {
       await connect("start", state.assembly);
       await expect(edges()).toHaveCount(1);
-      await node(state.assembly).click();
+      await inspectNode(state.assembly);
       await ui.select(
         "text",
         "开始节点 → text",
-        page.locator(".testflow-inspector"),
+        page.locator(".testflow-node-settings"),
       );
       await connect(state.assembly, "end");
       await expect(edges()).toHaveCount(2);
@@ -482,18 +459,18 @@ export async function pipelinesControls(env) {
     "Export contains the actual saved DAG and credential references only",
     async () => {
       const pending = page.waitForEvent("download");
-      await button("导出 JSON").click();
+      await button("导出流程").click();
       const data = JSON.parse(
         await fs.readFile(await (await pending).path(), "utf8"),
       );
-      expect(data.nodes).toHaveLength(3);
-      expect(data.edges).toHaveLength(2);
-      expect(data.version).toBe(2);
+      expect(data.format).toBe("testflow.workflow.v1");
+      expect(data.pipeline.nodes).toHaveLength(3);
+      expect(data.pipeline.edges).toHaveLength(2);
       expect(JSON.stringify(data)).not.toMatch(/\bsk-[\w-]{16,}/);
       return {
-        version: data.version,
-        nodes: data.nodes.length,
-        edges: data.edges.length,
+        format: data.format,
+        nodes: data.pipeline.nodes.length,
+        edges: data.pipeline.edges.length,
       };
     },
   );
@@ -502,8 +479,10 @@ export async function pipelinesControls(env) {
     "boundary",
     "Start is protected; an additional End can be removed with Delete",
     async () => {
-      await node("start").click();
+      await inspectNode("start");
       await expect(button("删除节点")).toHaveCount(0);
+      await closeInspector();
+      await button("添加节点").click();
       await button("结束节点", page.locator(".testflow-palette")).click();
       await expect(nodes()).toHaveCount(4);
       await page.locator(".testflow-canvas").press("Delete");
@@ -521,7 +500,7 @@ export async function pipelinesControls(env) {
     "normal",
     "Remove selected assembly and its connected edges without changing the old version",
     async () => {
-      await node(state.assembly).click();
+      await inspectNode(state.assembly);
       await button("删除节点").click();
       await expect(nodes()).toHaveCount(2);
       await expect(edges()).toHaveCount(0);
@@ -537,14 +516,15 @@ export async function pipelinesControls(env) {
     "negative",
     "Zero node timeout stays visible and is rejected by the real graph validator",
     async () => {
-      await node(state.assembly).click();
+      await inspectNode(state.assembly);
       const timeout = page.getByLabel("节点运行超时（秒）", { exact: true });
       await timeout.fill("0");
       await expect(timeout).toHaveValue("0");
       await button("校验流程").click();
       await expect(page.getByRole("alert")).toBeVisible();
-      await expect(timeout).toHaveValue("0");
-      await timeout.fill("30");
+      await inspectNode(state.assembly);
+      await expect(page.getByLabel("节点运行超时（秒）",{exact:true})).toHaveValue("0");
+      await page.getByLabel("节点运行超时（秒）", {exact:true}).fill("30");
       return { zero_retained: true, invalid_timeout_rejected: true };
     },
   );
@@ -553,7 +533,7 @@ export async function pipelinesControls(env) {
     "boundary",
     "A dirty canvas guards departure, exports its draft and can restore it after return",
     async () => {
-      await node(state.assembly).click();
+      await inspectNode(state.assembly);
       await page
         .getByLabel("节点名称", { exact: true })
         .fill("retained canvas draft");
@@ -561,11 +541,11 @@ export async function pipelinesControls(env) {
       await expect(dialog()).toContainText("未保存");
       await button("继续编辑", dialog()).click();
       const pending = page.waitForEvent("download");
-      await button("导出 JSON").click();
+      await button("导出流程").click();
       const data = JSON.parse(
         await fs.readFile(await (await pending).path(), "utf8"),
       );
-      expect(data.nodes.some((n) => n.name === "retained canvas draft")).toBe(
+      expect(data.pipeline.nodes.some((n) => n.name === "retained canvas draft")).toBe(
         true,
       );
       await button("流程列表").click();
@@ -660,7 +640,7 @@ export async function pipelinesControls(env) {
     "normal",
     "Ctrl S from a configuration input saves the real draft as a new version",
     async () => {
-      await node(state.assembly).click();
+      await inspectNode(state.assembly);
       const input = page.getByLabel("节点名称", { exact: true });
       await input.fill("Shortcut verified assembly");
       await expect(node(state.assembly)).toContainText(

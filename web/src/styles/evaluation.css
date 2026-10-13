@@ -1,0 +1,47 @@
+.testflow-profile-card {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.testflow-profile-card-link {
+  display: block;
+  flex: 1;
+  padding: var(--testflow-px-22);
+  color: var(--testflow-text);
+  text-decoration: none;
+  border-radius: var(--testflow-radius) var(--testflow-radius) 0 0;
+  transition: background 0.15s;
+}
+.testflow-profile-card-link:hover {
+  background: var(--testflow-accent-soft);
+}
+.testflow-profile-card-link:focus-visible {
+  outline: var(--testflow-px-2) solid var(--testflow-accent);
+  outline-offset: calc(-1 * var(--testflow-px-2));
+}
+.testflow-profile-card-link h2 {
+  font-size: var(--testflow-font-lg);
+  margin-bottom: var(--testflow-px-18);
+}
+.testflow-profile-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--testflow-px-12);
+  font-size: var(--testflow-font-sm);
+}
+.testflow-profile-summary > div {
+  display: grid;
+  grid-template-columns: var(--testflow-px-50) minmax(0, 1fr);
+  gap: var(--testflow-px-10);
+}
+.testflow-profile-summary dt {
+  color: var(--testflow-muted);
+}
+.testflow-profile-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.testflow-profile-card .testflow-resource-actions {
+  margin: 0;
+  padding: var(--testflow-px-12) var(--testflow-px-22);
+}

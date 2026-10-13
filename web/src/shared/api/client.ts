@@ -9,10 +9,10 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export async function api<T>(
+async function request(
   path: string,
   options: RequestInit = {},
-): Promise<T> {
+): Promise<Response> {
   const headers = new Headers(options.headers);
   headers.set("Accept", "application/json");
   if (options.body && !(options.body instanceof FormData))
@@ -34,7 +34,30 @@ export async function api<T>(
       error.request_id,
     );
   }
-  return response.json() as Promise<T>;
+  return response;
+}
+export async function api<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  return (await request(path, options)).json() as Promise<T>;
+}
+export async function exportFile(
+  path: string,
+  body: unknown,
+  filename: string,
+) {
+  const response = await request(path, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 export const getJson = <T>(path: string, signal?: AbortSignal) =>
   api<T>(path, { signal });

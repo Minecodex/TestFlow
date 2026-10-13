@@ -52,6 +52,47 @@ export interface components {
             /** Original Blob */
             original_blob?: string | null;
         };
+        /** AssetExport */
+        AssetExport: {
+            /** Assets */
+            assets: components["schemas"]["ResourceSelection"][];
+        };
+        /** AssetImportItem */
+        AssetImportItem: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Type */
+            type: string;
+            /** Revision Digest */
+            revision_digest: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "create" | "reuse";
+            resource?: components["schemas"]["ResourceSelection"] | null;
+        };
+        /** AssetImportResult */
+        AssetImportResult: {
+            /** Items */
+            items: components["schemas"]["AssetImportItem"][];
+            /** Created */
+            created: number;
+            /** Reused */
+            reused: number;
+        };
+        /** AssetPreview */
+        AssetPreview: {
+            /**
+             * Valid
+             * @default true
+             */
+            valid: boolean;
+            /** Items */
+            items: components["schemas"]["AssetImportItem"][];
+        };
         /** Binding */
         Binding: {
             /** Value */
@@ -63,6 +104,16 @@ export interface components {
         };
         /** Body_import_module_api_v1_modules_import_post */
         Body_import_module_api_v1_modules_import_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_import_package_api_v1_assets_import_post */
+        Body_import_package_api_v1_assets_import_post: {
+            /** File */
+            file: string;
+        };
+        /** Body_preview_api_v1_assets_import_preview_post */
+        Body_preview_api_v1_assets_import_preview_post: {
             /** File */
             file: string;
         };
@@ -86,15 +137,6 @@ export interface components {
             inputs: {
                 [key: string]: components["schemas"]["Binding"];
             };
-            /** Reference */
-            reference?: {
-                [key: string]: unknown;
-            };
-            /**
-             * Reference Confirmed
-             * @default false
-             */
-            reference_confirmed: boolean;
         };
         /** CodeMount */
         CodeMount: {
@@ -141,6 +183,24 @@ export interface components {
              */
             created: string;
         };
+        /** DatasetAsset */
+        DatasetAsset: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "Text" | "Audio" | "Image";
+            /** Format */
+            format: string;
+            /** Sha256 */
+            sha256: string;
+            /** Revision Digest */
+            revision_digest: string;
+        };
         /** DatasetBody */
         DatasetBody: {
             /** Name */
@@ -151,9 +211,76 @@ export interface components {
              */
             description: string;
             input_schema: components["schemas"]["Schema"];
-            output_schema: components["schemas"]["Schema"];
             /** Cases */
             cases?: components["schemas"]["Case"][];
+        };
+        /** DatasetCandidate */
+        DatasetCandidate: {
+            /** Id */
+            id: string;
+            /** Version */
+            version?: number | null;
+            /** Name */
+            name: string;
+        };
+        /** DatasetDocument */
+        DatasetDocument: {
+            /**
+             * Format
+             * @constant
+             */
+            format: "testflow.dataset.v1";
+            /** Assets */
+            assets?: components["schemas"]["DatasetAsset"][];
+            dataset: components["schemas"]["PortableDataset"];
+        };
+        /** DatasetImport */
+        DatasetImport: {
+            document: components["schemas"]["DatasetDocument"];
+            /** Bindings */
+            bindings?: {
+                [key: string]: components["schemas"]["ResourceSelection"];
+            };
+            /** Name */
+            name?: string | null;
+        };
+        /** DatasetPreview */
+        DatasetPreview: {
+            /** Valid */
+            valid: boolean;
+            /** Requirements */
+            requirements: components["schemas"]["DatasetRequirement"][];
+            /** Errors */
+            errors: {
+                [key: string]: unknown;
+            }[];
+            dataset?: components["schemas"]["DatasetBody"] | null;
+        };
+        /** DatasetRequirement */
+        DatasetRequirement: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "Text" | "Audio" | "Image";
+            /** Format */
+            format: string;
+            /** Sha256 */
+            sha256: string;
+            /** Revision Digest */
+            revision_digest: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "resolved" | "missing" | "selection_required" | "invalid_binding";
+            /** Candidates */
+            candidates: components["schemas"]["DatasetCandidate"][];
+            selected?: components["schemas"]["ResourceSelection"] | null;
         };
         /** Dimension */
         Dimension: {
@@ -227,6 +354,8 @@ export interface components {
             temperature?: number | null;
             /** Credential Id */
             credential_id?: string | null;
+            /** Api Key */
+            api_key?: string | null;
             /** Modalities */
             modalities?: ("Text" | "JSON" | "Audio" | "Image")[];
             /**
@@ -432,6 +561,11 @@ export interface components {
             /** Name */
             name: string;
             /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
              * X
              * @default 0
              */
@@ -536,6 +670,12 @@ export interface components {
             exposes_trace: boolean;
             runtime: components["schemas"]["PodRuntime"];
         };
+        /** ModuleRuntimeUpdate */
+        ModuleRuntimeUpdate: {
+            /** Expected Version */
+            expected_version: number;
+            runtime: components["schemas"]["PodRuntime"];
+        };
         /** OperationResponse */
         OperationResponse: {
             /** Id */
@@ -603,6 +743,13 @@ export interface components {
                     [key: string]: unknown;
                 };
             };
+        };
+        /** ParameterCredential */
+        ParameterCredential: {
+            /** Path */
+            path: (string | number)[];
+            /** Credential Key */
+            credential_key: string;
         };
         /** PipelineBody */
         PipelineBody: {
@@ -708,6 +855,37 @@ export interface components {
              * @default false
              */
             stream: boolean;
+        };
+        /** PortableBinding */
+        PortableBinding: {
+            /** Value */
+            value?: unknown;
+            /** Asset Key */
+            asset_key?: string | null;
+        };
+        /** PortableCase */
+        PortableCase: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Inputs */
+            inputs: {
+                [key: string]: components["schemas"]["PortableBinding"];
+            };
+        };
+        /** PortableDataset */
+        PortableDataset: {
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            input_schema: components["schemas"]["Schema"];
+            /** Cases */
+            cases?: components["schemas"]["PortableCase"][];
         };
         /** QuickExecutionBody */
         QuickExecutionBody: {
@@ -828,6 +1006,10 @@ export interface components {
             duration_ms: number | null;
             /** Cleanup */
             cleanup: string;
+            /** Materials */
+            materials?: {
+                [key: string]: unknown;
+            };
         };
         /** ReportsResponse */
         ReportsResponse: {
@@ -917,6 +1099,13 @@ export interface components {
             availability?: components["schemas"]["OperationResponse"] | null;
             sync_operation?: components["schemas"]["OperationResponse"] | null;
             import_operation?: components["schemas"]["OperationResponse"] | null;
+        };
+        /** ResourceSelection */
+        ResourceSelection: {
+            /** Id */
+            id: string;
+            /** Version */
+            version?: number | null;
         };
         /** RevisionPageResponse */
         RevisionPageResponse: {
@@ -1101,6 +1290,241 @@ export interface components {
             } | null;
             /** Reason */
             reason?: string | null;
+        };
+        /** WorkflowCredential */
+        WorkflowCredential: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "module" | "registry";
+        };
+        /** WorkflowDocument */
+        WorkflowDocument: {
+            /**
+             * Format
+             * @constant
+             */
+            format: "testflow.workflow.v1";
+            pipeline: components["schemas"]["WorkflowPipeline"];
+            /** Modules */
+            modules?: components["schemas"]["WorkflowModule"][];
+            /** Repositories */
+            repositories?: components["schemas"]["WorkflowRepository"][];
+            /** Credentials */
+            credentials?: components["schemas"]["WorkflowCredential"][];
+        };
+        /** WorkflowImport */
+        WorkflowImport: {
+            document: components["schemas"]["WorkflowDocument"];
+            /** Bindings */
+            bindings?: {
+                [key: string]: components["schemas"]["WorkflowSelection"];
+            };
+            /** Name */
+            name?: string | null;
+        };
+        /** WorkflowModule */
+        WorkflowModule: {
+            /** Key */
+            key: string;
+            /** Id */
+            id: string;
+            /** Version */
+            version: string;
+            /** Package Digest */
+            package_digest: string;
+        };
+        /** WorkflowMount */
+        WorkflowMount: {
+            /** Repository Key */
+            repository_key: string;
+            /** Commit */
+            commit: string;
+            /** Mount Path */
+            mount_path: string;
+        };
+        /** WorkflowNode */
+        WorkflowNode: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "start" | "end" | "module" | "assembly" | "conversion";
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * X
+             * @default 0
+             */
+            x: number;
+            /**
+             * Y
+             * @default 0
+             */
+            y: number;
+            /** Module Key */
+            module_key?: string | null;
+            input_schema?: components["schemas"]["Schema"] | null;
+            output_schema?: components["schemas"]["Schema"] | null;
+            /** Parameters */
+            parameters?: {
+                [key: string]: unknown;
+            };
+            /** Parameter Credentials */
+            parameter_credentials?: components["schemas"]["ParameterCredential"][];
+            runtime?: components["schemas"]["WorkflowRuntime"] | null;
+            /**
+             * Timeout
+             * @default 30
+             */
+            timeout: number;
+            /** Mappings */
+            mappings?: {
+                [key: string]: string;
+            }[];
+            /** Direction */
+            direction?: ("to_stream" | "to_full") | null;
+        };
+        /** WorkflowOption */
+        WorkflowOption: {
+            /** Id */
+            id: string;
+            /** Version */
+            version?: number | null;
+            /** Name */
+            name: string;
+        };
+        /** WorkflowPipeline */
+        WorkflowPipeline: {
+            /** Name */
+            name: string;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            input_schema: components["schemas"]["Schema"];
+            output_schema: components["schemas"]["Schema"];
+            /** Nodes */
+            nodes: components["schemas"]["WorkflowNode"][];
+            /** Edges */
+            edges: {
+                [key: string]: string;
+            }[];
+            /**
+             * Preparation Timeout
+             * @default 60
+             */
+            preparation_timeout: number;
+            /**
+             * Cleanup Timeout
+             * @default 10
+             */
+            cleanup_timeout: number;
+        };
+        /** WorkflowPreview */
+        WorkflowPreview: {
+            /** Valid */
+            valid: boolean;
+            /** Requirements */
+            requirements: components["schemas"]["WorkflowRequirement"][];
+            /** Errors */
+            errors: {
+                [key: string]: unknown;
+            }[];
+            pipeline?: components["schemas"]["PipelineBody"] | null;
+        };
+        /** WorkflowRepository */
+        WorkflowRepository: {
+            /** Key */
+            key: string;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            /** Commit */
+            commit: string;
+        };
+        /** WorkflowRequirement */
+        WorkflowRequirement: {
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "module" | "repository" | "credential";
+            /** Name */
+            name: string;
+            /** Identity */
+            identity: string;
+            /**
+             * State
+             * @enum {string}
+             */
+            state: "resolved" | "missing" | "selection_required";
+            /** Options */
+            options: components["schemas"]["WorkflowOption"][];
+            selected?: components["schemas"]["WorkflowSelection"] | null;
+        };
+        /** WorkflowRuntime */
+        WorkflowRuntime: {
+            /**
+             * Mode
+             * @default pod
+             * @constant
+             */
+            mode: "pod";
+            /** Image */
+            image: string;
+            /**
+             * Port
+             * @default 8080
+             */
+            port: number;
+            code_mount?: components["schemas"]["WorkflowMount"] | null;
+            /** Registry Credential Key */
+            registry_credential_key?: string | null;
+            /**
+             * Reuse Scope
+             * @default batch_node
+             * @enum {string}
+             */
+            reuse_scope: "batch_node" | "execution_node";
+            /**
+             * Requires Sequential
+             * @default false
+             */
+            requires_sequential: boolean;
+            /**
+             * Cpu
+             * @default 500m
+             */
+            cpu: string;
+            /**
+             * Memory
+             * @default 512Mi
+             */
+            memory: string;
+        };
+        /** WorkflowSelection */
+        WorkflowSelection: {
+            /** Id */
+            id: string;
+            /** Version */
+            version?: number | null;
         };
         /** assetsUpdate */
         assetsUpdate: {

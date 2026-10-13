@@ -1,3 +1,4 @@
+import { DeleteAction } from "../../shared/ui";
 import { useMessages } from "../../i18n";
 import type {
   Dimension,
@@ -5,7 +6,7 @@ import type {
   Profile,
   Schema,
 } from "../../shared/api/types";
-import { Action, Choice, Text } from "../../shared/ui";
+import {Action, Choice, Text} from "../../shared/ui";
 type Binding = Dimension["actual"];
 export type BindingOverrides = Record<
   string,
@@ -54,7 +55,6 @@ export function FieldBinding({
             "output",
             "node",
             "input",
-            "reference",
             "execution",
             "events",
           ] as const
@@ -158,7 +158,7 @@ export function PlanBindings({
                     })
                   }
                 />
-                <Action
+                <DeleteAction
                   size="sm"
                   danger
                   onPress={() =>
@@ -166,7 +166,7 @@ export function PlanBindings({
                   }
                 >
                   {t.common.remove}
-                </Action>
+                </DeleteAction>
               </div>
             ))}
             <Action

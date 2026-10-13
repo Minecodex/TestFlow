@@ -20,6 +20,7 @@ from testflow.features.auth import require_admin, validate_credential
 from testflow.infrastructure.models import Operation, Resource, Revision
 from testflow.infrastructure.operations import enqueue, idempotent
 from testflow.infrastructure.revisions import digest, get_resource, save_resource
+from testflow.features.modules.runtime_config import ModuleRuntimeUpdate, effective_runtime, validate_runtime
 
 router = APIRouter(prefix="/modules", tags=["modules"], dependencies=[Depends(require_admin)])
 
@@ -61,7 +62,7 @@ def read_package(content: bytes, limit: int) -> dict:
         ui = archive.read(manifest.ui).decode("utf-8")
         if "testflow.ui.v1" not in ui or "export" not in ui:
             fail("incompatible_ui", "UI entry must export a testflow.ui.v1 component")
-        return {"name": manifest.name, "manifest": manifest.model_dump(mode="json"), "inputs": inputs.model_dump(), "outputs": outputs.model_dump(), "parameters": parameters,
+        return {"name": manifest.name, "manifest": manifest.model_dump(mode="json"), "runtime": manifest.runtime.model_dump(mode="json"), "inputs": inputs.model_dump(), "outputs": outputs.model_dump(), "parameters": parameters,
                 "package_digest": hashlib.sha256(content).hexdigest(), "contract_digest": digest({"protocol": manifest.protocol, "id": manifest.id, "version": manifest.version, "inputs": inputs.model_dump(), "outputs": outputs.model_dump(), "parameters": parameters}),
                 "readme": archive.read("README.md").decode("utf-8")}
     except (KeyError, zipfile.BadZipFile, UnicodeDecodeError, ValidationError, ValueError, SchemaError, JsonSchemaError) as error:
@@ -69,7 +70,7 @@ def read_package(content: bytes, limit: int) -> dict:
 
 
 @router.post("/import", response_model=ResourceResponse)
-async def import_module(request: Request, file: UploadFile = File(...), idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def import_module(request: Request, file: UploadFile = File(...), idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     content = await file.read(request.app.state.settings.max_upload_bytes + 1)
     if len(content) > request.app.state.settings.max_upload_bytes: fail("upload_too_large", "Upload too large", 413)
     data = read_package(content, request.app.state.settings.max_upload_bytes)
@@ -87,7 +88,7 @@ async def import_module(request: Request, file: UploadFile = File(...), idempote
                 same = next((v for v in versions if v.data["manifest"]["version"] == data["manifest"]["version"]), None)
                 if same:
                     if same.data["package_digest"] != data["package_digest"]: fail("version_identity_conflict", "Change module version when changing a package", 409)
-                    resource = await get_resource(db, "modules", r.id, same.number)
+                    resource = current if current["data"]["package_digest"] == data["package_digest"] else await get_resource(db, "modules", r.id, same.number)
                     operations = (await db.scalars(select(Operation).where(Operation.kind == "module.import").order_by(Operation.created.desc()))).all()
                     imported = next((op for op in operations if op.payload.get("revision_id") == same.id), None)
                     if imported and imported.state not in {"succeeded", "queued", "running"}:
@@ -104,29 +105,40 @@ async def import_module(request: Request, file: UploadFile = File(...), idempote
     return await idempotent(db, "module.import", idempotency_key, {"sha256": data["package_digest"]}, create)
 
 
+@router.put("/{module_id}/runtime", response_model=ResourceResponse)
+async def save_runtime(module_id: str, body: ModuleRuntimeUpdate, db=Depends(session, scope="function")):
+    module = await get_resource(db, "modules", module_id, lock=True)
+    if module["hidden"]:
+        fail("hidden_module", "Deleted modules cannot be edited")
+    if module["version"] != body.expected_version:
+        fail("version_conflict", "Resource changed; reload before saving", 409)
+    runtime = body.runtime.model_dump(mode="json")
+    await validate_runtime(db, module["data"], runtime, require_visible=True)
+    if effective_runtime(module["data"]) == runtime:
+        return module
+    return await save_resource(db, "modules", {**module["data"], "runtime": runtime}, module_id, body.expected_version)
+
+
 @router.post("/{module_id}/validate", response_model=OperationResponse)
-async def validate_module(module_id: str, request: Request, runtime: PodRuntime | None = None, version: int | None = None, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def validate_module(module_id: str, request: Request, runtime: PodRuntime | None = None, version: int | None = None, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     async def create():
         module = await get_resource(db, "modules", module_id, version)
         if module["hidden"]: fail("hidden_module", "Restore module before validation")
         imports = (await db.scalars(select(Operation).where(Operation.kind == "module.import"))).all()
-        importing = [op for op in imports if op.payload.get("revision_id") == module["revision_id"]]
+        importing = [op for op in imports if op.payload.get("package_digest") == module["data"]["package_digest"]]
         if importing and not any(op.state == "succeeded" for op in importing): fail("module_import_pending", "Wait for module import to finish", 409)
-        actual = runtime.model_dump(mode="json") if runtime else module["data"]["manifest"]["runtime"]
-        await validate_credential(db, actual.get("registry_credential_id"), "registry")
+        actual = runtime.model_dump(mode="json") if runtime else effective_runtime(module["data"])
+        repository = await validate_runtime(db, module["data"], actual, require_visible=True)
         payload = {"module": module, "revision_id": module["revision_id"], "runtime": actual}
-        mount = actual.get("code_mount")
-        if mount:
-            repo = await get_resource(db, "repositories", mount["repository_id"], mount["repository_version"])
-            if repo["data"].get("commit") != mount["commit"] or not repo["data"].get("code_path"): fail("code_unavailable", "Code commit is not synced")
-            payload["repository"] = repo
+        if repository:
+            payload["repository"] = repository
         return await enqueue(db, "module.validate", payload)
     intent = {"version": version, "runtime": runtime.model_dump(mode="json") if runtime else None}
     return await idempotent(db, "module.validate:" + module_id, idempotency_key, intent, create)
 
 
 @router.get("/{module_id}/files/{path:path}")
-async def module_file(module_id: str, path: str, request: Request, version: int, db=Depends(session)):
+async def module_file(module_id: str, path: str, request: Request, version: int, db=Depends(session, scope="function")):
     module = await get_resource(db, "modules", module_id, version)
     root = request.app.state.settings.data_dir.resolve() / "module-packages" / module["data"]["package_digest"]
     target = (root / path).resolve()

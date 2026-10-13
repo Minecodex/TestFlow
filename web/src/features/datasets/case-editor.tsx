@@ -9,7 +9,7 @@ import type {
   Resource,
   Schema,
 } from "../../shared/api/types";
-import { PinnedChoice } from "../../shared/ui/pinned-choice";
+import { AssetReference } from "../assets/references";
 import {
   Action,
   Check,
@@ -24,7 +24,7 @@ import {
 export function emptyCase(schema: Schema): Case {
   return {id:crypto.randomUUID(),name:"",inputs:Object.fromEntries(schema.fields
     .filter(field=>["Text","JSON"].includes(field.type))
-    .map(field=>[field.name,{value:field.type==="JSON"?{}:""}])),reference:{},reference_confirmed:false};
+    .map(field=>[field.name,{value:field.type==="JSON"?{}:""}]))};
 }
 function AssetChoice({
   resources,
@@ -39,7 +39,7 @@ function AssetChoice({
   const selected = useResource<Asset>(
     "assets",
     binding?.asset_id || undefined,
-    binding?.asset_version ? String(binding.asset_version) : undefined,
+    undefined,
   );
   const options =
     selected.data && !resources.some((asset) => asset.id === selected.data?.id)
@@ -47,16 +47,10 @@ function AssetChoice({
       : resources;
   return (
     <>
-      <PinnedChoice
-        kind="assets"
-        label={t.datasets.asset}
-        resources={options}
-        id={binding?.asset_id || ""}
-        version={binding?.asset_version || 1}
-        onChange={(asset_id, asset_version) =>
-          onChange({ asset_id, asset_version })
-        }
-      />
+      <Choice label={t.datasets.asset} options={options} value={binding?.asset_id || undefined}
+        onChange={asset_id => onChange({ asset_id, asset_version: null })} />
+      {binding?.asset_id && <AssetReference id={binding.asset_id} section="all" />}
+      <Notice>{t.datasets.liveAssetHint}</Notice>
       <Failure error={selected.error} />
     </>
   );
@@ -79,7 +73,7 @@ export function InputBindings({
     onValid?.(
       obsolete.length === 0 && schema.fields.every((f) => {
         const binding = value[f.name];
-        if (binding?.asset_id) return !!binding.asset_version;
+        if (binding?.asset_id) return true;
         if (f.type === "Audio" || f.type === "Image") return false;
         return (
           !!binding &&
@@ -103,7 +97,7 @@ export function InputBindings({
         return (
           <div className="testflow-outline" key={f.name}>
             <h3>
-              {f.name} · {f.type}
+              {f.name} · {t.common.types[f.type]}
             </h3>
             {["Text", "JSON"].includes(f.type) && (
               <Choice
@@ -121,7 +115,7 @@ export function InputBindings({
                         ? { value: f.type === "JSON" ? {} : "" }
                         : {
                             asset_id: available[0]?.id,
-                            asset_version: available[0]?.version,
+                            asset_version: null,
                           },
                   })
                 }
@@ -201,7 +195,6 @@ export function CaseEditor({
   useEffect(()=>draftChanged.current?.(value),[value]);
   const ready =
     !!value.name &&
-    valid &&
     inputValid &&
     schema.fields.every(
       (f) =>
@@ -249,20 +242,7 @@ export function CaseEditor({
           value={value.inputs}
           onChange={(inputs) => setValue({ ...value, inputs })}
         />
-        <JsonEditor
-          label={t.datasets.referenceJson}
-          value={value.reference || {}}
-          onChange={(reference) => setValue({ ...value, reference })}
-          onValid={setValid}
-        />
-        <Check
-          value={!!value.reference_confirmed}
-          onChange={(reference_confirmed) =>
-            setValue({ ...value, reference_confirmed })
-          }
-        >
-          {t.common.confirmed}
-        </Check>
+
       </div>
     </Dialog>
   );

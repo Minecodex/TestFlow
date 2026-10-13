@@ -20,7 +20,7 @@ socket_router = APIRouter(tags=["executions"])
 
 
 @router.post("/quick", response_model=ExecutionResponse)
-async def quick(body: QuickExecutionBody, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def quick(body: QuickExecutionBody, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     async def create():
         pipeline = await freeze_pipeline(db, body.pipeline_id, body.pipeline_version)
         profile = await get_resource(db, "evaluation-profiles", body.profile_id, body.profile_version)
@@ -36,7 +36,7 @@ async def quick(body: QuickExecutionBody, idempotency_key: str = Header(..., min
 
 
 @router.get("", response_model=ExecutionPageResponse)
-async def executions(state: str = "", task_id: str = "", dataset_id: str = "", pipeline_id: str = "", search: str = "", all_attempts: bool = True, page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100), db=Depends(session)):
+async def executions(state: str = "", task_id: str = "", dataset_id: str = "", pipeline_id: str = "", search: str = "", all_attempts: bool = True, page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100), db=Depends(session, scope="function")):
     where = []
     if state: where.append(Execution.state == state)
     if task_id: where.append(Execution.task_id == task_id)
@@ -63,7 +63,7 @@ async def executions(state: str = "", task_id: str = "", dataset_id: str = "", p
 
 
 @router.get("/{execution_id}", response_model=ExecutionResponse)
-async def execution(execution_id: str, db=Depends(session)):
+async def execution(execution_id: str, db=Depends(session, scope="function")):
     row = await db.get(Execution, execution_id)
     if not row: fail("not_found", "Execution not found", 404)
     evaluations = (await db.scalars(select(Evaluation).where(Evaluation.execution_id == row.id).order_by(Evaluation.created.desc(), Evaluation.id.desc()))).all()
@@ -73,14 +73,14 @@ async def execution(execution_id: str, db=Depends(session)):
 
 
 @router.get("/{execution_id}/events", response_model=EventPageResponse)
-async def events(execution_id: str, cursor: int = 0, page_size: int = Query(200, ge=1, le=1000), db=Depends(session)):
+async def events(execution_id: str, cursor: int = 0, page_size: int = Query(200, ge=1, le=1000), db=Depends(session, scope="function")):
     if not await db.get(Execution, execution_id): fail("not_found", "Execution not found", 404)
     rows = (await db.scalars(select(Event).where(Event.execution_id == execution_id, Event.id > cursor).order_by(Event.id).limit(page_size))).all()
     return {"items": [serialize(r) for r in rows], "cursor": rows[-1].id if rows else cursor}
 
 
 @router.post("/{execution_id}/cancel")
-async def cancel(execution_id: str, request: Request, db=Depends(session)):
+async def cancel(execution_id: str, request: Request, db=Depends(session, scope="function")):
     row = await db.get(Execution, execution_id)
     if not row: fail("not_found", "Execution not found", 404)
     run = request.app.state.scheduler.runs.get(execution_id)
@@ -94,7 +94,7 @@ async def cancel(execution_id: str, request: Request, db=Depends(session)):
 
 
 @router.post("/{execution_id}/rerun", response_model=ExecutionResponse)
-async def rerun(execution_id: str, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def rerun(execution_id: str, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     original = await db.scalar(select(Execution).where(Execution.id == execution_id).with_for_update())
     if not original: fail("not_found", "Execution not found", 404)
     async def create():
@@ -128,7 +128,7 @@ async def rerun(execution_id: str, idempotency_key: str = Header(..., min_length
 
 
 @router.post("/{execution_id}/reevaluate", response_model=EvaluationResponse)
-async def reevaluate(execution_id: str, profile_id: str | None = None, profile_version: int | None = None, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def reevaluate(execution_id: str, profile_id: str | None = None, profile_version: int | None = None, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     ex = await db.get(Execution, execution_id)
     if not ex: fail("not_found", "Execution not found", 404)
     async def create():

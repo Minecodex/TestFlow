@@ -1,0 +1,39 @@
+{
+  "format": "testflow.dataset.v1",
+  "assets": [
+    {
+      "key": "image",
+      "name": "Helpdesk example · question.png",
+      "type": "Image",
+      "format": "Image/*",
+      "sha256": "878368426a3aa6dd4029b48c6739dbc29fa03626641e5d4256dc1c8491b7807b",
+      "revision_digest": "2f84f80d681bacfe26bb8e4fadb2cc46c287805dc2e11ecf4ae2554c491ebded"
+    }
+  ],
+  "dataset": {
+    "name": "GitHub example case · image",
+    "description": "Fixed synthetic inputs; pairs with GitHub example · image",
+    "input_schema": {
+      "fields": [
+        {
+          "name": "image",
+          "type": "Image",
+          "format": "Image/*",
+          "stream": false
+        }
+      ]
+    },
+    "cases": [
+      {
+        "key": "refund",
+        "name": "Refund policy · image",
+        "inputs": {
+          "image": {
+            "value": null,
+            "asset_key": "image"
+          }
+        }
+      }
+    ]
+  }
+}

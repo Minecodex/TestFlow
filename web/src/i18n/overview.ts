@@ -1,4 +1,5 @@
 export const overviewZh = {
+  caseResults: "案例结果",
   title: "测试工作台",
   description: "让每一次模块测试，都留下可追溯的结果。",
   welcome: "从输入到判断，每一步都有据可查。",
@@ -46,6 +47,7 @@ export const overviewZh = {
   historyNote: "每次任务冻结版本与输入，重跑和复评追加历史。",
 };
 export const overviewEn = {
+  caseResults: "Case results",
   title: "Test workspace",
   description: "Keep a traceable result for every module test.",
   welcome: "Evidence at every step, from input to judgment.",

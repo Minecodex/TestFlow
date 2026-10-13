@@ -1,6 +1,7 @@
+import { EditAction } from "../../shared/ui";
 import { useCompactDateTime } from "../../shared/ui/date-time";
 import { useListState } from "../../shared/ui/list-state";
-import { Pagination } from "../../shared/ui";
+import {Pagination} from "../../shared/ui";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Code2, FileText, GitBranch, LockKeyhole, Pencil, Plus, RefreshCw } from "lucide-react";
@@ -9,22 +10,10 @@ import { ApiError, operationKey, write } from "../../shared/api/client";
 import { useOperationKeys } from "../../shared/api/operation-keys";
 import { useResources, useWrite } from "../../shared/api/hooks";
 import type { Repository, Resource, Operation } from "../../shared/api/types";
-import {
-  Action,
-  Badge,
-  DataTable,
-  Dialog,
-  Empty,
-  Failure,
-  Head,
-  Notice,
-  Panel,
-  Status,
-  Text,
-} from "../../shared/ui";
+import {Action, Badge, DataTable, Dialog, Empty, Failure, Head, Notice, Panel, Status, Text} from "../../shared/ui";
 import {
   CredentialSelect,
-  Hide,
+  DeleteResource,
   OperationStatus,
   Versions,
 } from "../../shared/ui/resources";
@@ -149,8 +138,6 @@ export function RepositoriesPage() {
     <>
       <Head
         title={t.repositories.title}
-        description={t.repositories.description}
-        eyebrow="SOURCE / 02"
         actions={
           <Action primary action="new-repo" onPress={() => setEditing(null)}>
             <Plus />
@@ -227,7 +214,7 @@ export function RepositoriesPage() {
                     <RefreshCw />
                     {t.repositories.syncLabel}
                   </Action>
-                  <Action
+                  <EditAction
                     size="sm"
                     action="edit-repo"
                     variant="ghost"
@@ -235,9 +222,8 @@ export function RepositoriesPage() {
                     aria-label={t.common.edit}
                     onPress={() => setEditing(r)}
                   >
-                    <Pencil />
-                  </Action>
-                  <Hide kind="repositories" resource={r} iconOnly />
+                  </EditAction>
+                  <DeleteResource kind="repositories" resource={r} />
                 </div>,
               ],
             }))}

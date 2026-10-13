@@ -1,16 +1,21 @@
 import {
   Background,
+  BaseEdge,
   Handle,
   MarkerType,
   Position,
   ReactFlow,
   ReactFlowProvider,
   applyNodeChanges,
+  getBezierPath,
   type Connection,
   type Node,
   type NodeChange,
   type NodeProps,
+  type Edge,
+  type EdgeProps,
   useReactFlow,
+  useViewport,
 } from "@xyflow/react";
 import {
   ArrowDownToLine,
@@ -19,19 +24,29 @@ import {
   Minus,
   Plus,
   Workflow,
+  Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { useMessages } from "../../i18n";
 import type { GraphNode, Pipeline, Schema } from "../../shared/api/types";
 import { Action, Chips } from "../../shared/ui";
 import "@xyflow/react/dist/style.css";
-type FlowNode = Node<{ node: GraphNode }, "module">;
+type FlowNode = Node<{ node: GraphNode; remove: (id: string) => void }, "module">;
+type FlowEdge = Edge<{ remove: (source: string, target: string) => void }, "module">;
 function NodeView({ data, selected }: NodeProps<FlowNode>) {
   const node = data.node;
+  const { zoom } = useViewport();
   const t = useMessages();
   return (
     <div
       className={`testflow-flow-node testflow-node-${node.kind} ${selected ? "testflow-selected" : ""}`}
+      style={{ "--scale": zoom } as CSSProperties}
     >
       {node.kind !== "start" && (
         <Handle type="target" position={Position.Left} id="input" />
@@ -46,7 +61,12 @@ function NodeView({ data, selected }: NodeProps<FlowNode>) {
             <Workflow />
           )}
         </span>
-        {node.name}
+        <span className="testflow-node-title" title={node.description || node.name}>{node.name}</span>
+        {node.kind !== "start" && <span className="nodrag nopan testflow-node-delete"
+          onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>
+          <Action action="remove-node" isIconOnly size="sm" variant="ghost" aria-label={`${t.pipelines.removeNode} ${node.name}`}
+            onPress={() => data.remove(node.id)}><Trash2 /></Action>
+        </span>}
       </div>
       <div className="testflow-node-sub">
         {node.kind === "module" ? t.modules.title : t.pipelines[node.kind]} ·{" "}
@@ -54,13 +74,13 @@ function NodeView({ data, selected }: NodeProps<FlowNode>) {
       </div>
       {!!node.input_schema?.fields.length && (
         <div className="testflow-node-fields">
-          <small>IN</small>
+          <small>{t.common.input}</small>
           <Chips schema={node.input_schema} />
         </div>
       )}
-      {node.kind!=="end" && !!node.output_schema?.fields.length && (
+      {node.kind !== "end" && !!node.output_schema?.fields.length && (
         <div className="testflow-node-fields">
-          <small>OUT</small>
+          <small>{t.common.output}</small>
           <Chips schema={node.output_schema} />
         </div>
       )}
@@ -71,6 +91,20 @@ function NodeView({ data, selected }: NodeProps<FlowNode>) {
   );
 }
 const nodeTypes = { module: NodeView };
+function EdgeView(props: EdgeProps<FlowEdge>) {
+  const t = useMessages();
+  const [path, x, y] = getBezierPath(props);
+  return <>
+    <BaseEdge id={props.id} path={path} markerEnd={props.markerEnd} style={props.style} interactionWidth={24} />
+    <foreignObject x={x - 14} y={y - 14} width="28" height="28" overflow="visible" className="testflow-edge-delete-anchor">
+      <div className="nodrag nopan testflow-edge-delete" onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>
+        <Action action="remove-edge" isIconOnly size="sm" aria-label={t.pipelines.removeEdge}
+          onPress={() => props.data?.remove(props.source, props.target)}><Trash2 /></Action>
+      </div>
+    </foreignObject>
+  </>;
+}
+const edgeTypes = { module: EdgeView };
 const matching = (a?: Schema | null, b?: Schema | null) =>
   JSON.stringify(a?.fields.map((f) => ({ ...f, stream: !!f.stream }))) ===
   JSON.stringify(b?.fields.map((f) => ({ ...f, stream: !!f.stream })));
@@ -81,7 +115,11 @@ function Surface({
   onSelect,
   onRemoveEdge,
   onDelete,
+  onRemoveNode,
   onSave,
+  onInspect,
+  tools,
+  library,
 }: {
   value: Pipeline;
   onChange: (v: Pipeline) => void;
@@ -89,29 +127,46 @@ function Surface({
   onSelect: (id?: string) => void;
   onRemoveEdge: (source: string, target: string) => void;
   onDelete: () => void;
+  onRemoveNode: (id: string) => void;
   onSave: () => void;
+  onInspect: (id: string) => void;
+  tools?: ReactNode;
+  library?: ReactNode;
 }) {
   const t = useMessages();
   const flow = useReactFlow();
+  const previousCount = useRef(value.nodes.length);
+  useEffect(() => {
+    if (value.nodes.length > previousCount.current) {
+      const frame = requestAnimationFrame(() => {
+        void flow.fitView({ padding: 0.15 });
+      });
+      previousCount.current = value.nodes.length;
+      return () => cancelAnimationFrame(frame);
+    }
+    previousCount.current = value.nodes.length;
+  }, [value.nodes.length, flow]);
   const nodes: FlowNode[] = useMemo(
     () =>
       value.nodes.map((node) => ({
         id: node.id,
         type: "module",
         position: { x: node.x || 0, y: node.y || 0 },
-        data: { node },
+        data: { node, remove: onRemoveNode },
         selected: node.id === selected,
       })),
-    [value.nodes, selected],
+    [value.nodes, selected, onRemoveNode],
   );
   const edges = value.edges.map((e) => ({
-    id: e.source + "__" + e.target,
+    id: e.source + "::" + e.target,
+    type: "module",
     source: e.source,
     target: e.target,
     sourceHandle: "output",
     targetHandle: "input",
     markerEnd: { type: MarkerType.ArrowClosed },
     className: "testflow-flow-edge",
+    data: { remove: onRemoveEdge },
   }));
   const connect = (connection: Connection) => {
     if (!connection.source || !connection.target) return;
@@ -169,7 +224,7 @@ function Surface({
       aria-label={t.pipelines.title}
       onKeyDown={(e) => {
         const target = e.target as HTMLElement;
-        if (target.closest("input,textarea,[role=combobox]")) return;
+        if (target.closest("input,textarea,button,[role=combobox]")) return;
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
           e.preventDefault();
           onSave();
@@ -184,12 +239,12 @@ function Surface({
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={changeNodes}
         onConnect={connect}
         isValidConnection={isValid}
-        onNodeClick={(_, n) => onSelect(n.id)}
+        onNodeClick={(_, n) => onInspect(n.id)}
         onPaneClick={() => onSelect(undefined)}
-        onEdgeClick={(_, edge) => onRemoveEdge(edge.source, edge.target)}
         fitView
         minZoom={0.25}
         maxZoom={1.65}
@@ -198,6 +253,8 @@ function Surface({
       >
         <Background gap={18} size={1} />
       </ReactFlow>
+      <div className="testflow-canvas-tools">{tools}</div>
+      {library && <div className="testflow-canvas-library">{library}</div>}
       <div className="testflow-canvas-controls">
         <Action
           size="sm"

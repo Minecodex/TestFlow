@@ -9,7 +9,7 @@ from testflow.infrastructure.revisions import get_resource
 TEXT={'fields':[{'name':'text','type':'Text','format':'UTF-8','stream':False}]}
 
 def dataset(name='Dataset'):
-    return {'name':name,'input_schema':TEXT,'output_schema':TEXT,'cases':[{'id':'one','name':'One','inputs':{'text':{'value':'hello'}},'reference':{'text':'hello'},'reference_confirmed':True}]}
+    return {'name':name,'input_schema':TEXT,'cases':[{'id':'one','name':'One','inputs':{'text':{'value':'hello'}}}]}
 
 def graph():
     return {'name':'Identity','input_schema':TEXT,'output_schema':TEXT,'preparation_timeout':60,'cleanup_timeout':10,'nodes':[
@@ -37,7 +37,7 @@ async def test_frozen_plan_execution_and_reports(app_client):
     app,c=app_client
     d=(await c.post('/api/v1/datasets',json=dataset())).json()
     g=graph();p=(await c.post('/api/v1/pipelines',json=g)).json();assert 'id' in p,p
-    profile=(await c.post('/api/v1/evaluation-profiles',json={'name':'Exact','dimensions':[{'id':'exact','name':'Exact','method':'exact_text','needs_reference':True,'actual':{'source':'output','field':'text'},'reference':{'source':'reference','field':'text'}}]})).json()
+    profile=(await c.post('/api/v1/evaluation-profiles',json={'name':'Completion','dimensions':[{'id':'complete','name':'Complete','method':'completion','actual':{'source':'execution','field':'state'}}]})).json()
     body={'name':'Task','pairs':[{'dataset_id':d['id'],'dataset_version':1,'pipeline_id':p['id'],'pipeline_version':1}],'profile_id':profile['id'],'profile_version':1}
     submitted=await c.post('/api/v1/tasks',json=body,headers={'Idempotency-Key':'one'});assert submitted.status_code==200,submitted.text
     assert (await c.post('/api/v1/tasks',json=body,headers={'Idempotency-Key':'one'})).json()['id']==submitted.json()['id']

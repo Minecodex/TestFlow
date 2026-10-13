@@ -104,8 +104,6 @@ export function OverviewPage() {
     <div className="testflow-overview">
       <Head
         title={t.overview.title}
-        description={t.overview.description}
-        eyebrow="WORKSPACE / 01"
         actions={
           <Action
             primary
@@ -306,7 +304,7 @@ export function OverviewPage() {
           {latest ? (
             <>
               <div className="testflow-row testflow-between">
-                <div><div className="testflow-eyebrow">CASE RESULTS</div>
+                <div><div className="testflow-eyebrow">{t.overview.caseResults}</div>
                   <div className="testflow-stat-value testflow-batch-value">{latest.report.run_completed}<small> / {latest.report.plan_count}</small></div>
                 </div>
                 <p className="testflow-small testflow-muted">{t.overview.failureNote}<br/>{t.overview.continueNote}</p>

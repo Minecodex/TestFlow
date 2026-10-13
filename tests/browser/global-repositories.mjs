@@ -404,7 +404,7 @@ export async function globalControls(env) {
     "boundary",
     "Canceling hide keeps the resource available",
     async () => {
-      await button("隐藏 " + state.repo.name, row).click();
+      await button("删除 " + state.repo.name, row).click();
       await button("取消", dialog()).click();
       await expect(row).toBeVisible();
       expect((await api("get", "/repositories/" + state.repo.id)).hidden).toBe(
@@ -418,8 +418,8 @@ export async function globalControls(env) {
     "normal",
     "Confirm hide removes the row and preserves the old revision",
     async () => {
-      await button("隐藏 " + state.repo.name, row).click();
-      await button("确认隐藏", dialog()).click();
+      await button("删除 " + state.repo.name, row).click();
+      await button("确认删除", dialog()).click();
       await expect(row).toHaveCount(0);
       expect((await api("get", "/repositories/" + state.repo.id)).hidden).toBe(
         true,
@@ -436,7 +436,7 @@ export async function globalControls(env) {
     "normal",
     "Global hidden view lists the hidden repository",
     async () => {
-      await button("隐藏资源").click();
+      await button("回收站").click();
       await expect(button("恢复 " + state.repo.name, dialog())).toBeVisible();
       return { resource_id: state.repo.id };
     },

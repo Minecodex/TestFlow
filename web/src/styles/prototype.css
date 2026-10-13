@@ -339,19 +339,6 @@ pre {
   letter-spacing: -1px;
   line-height: 1.2;
 }
-.testflow-workspace-box {
-  margin: var(--testflow-px-25) var(--testflow-px-6) var(--testflow-px-16);
-  padding: var(--testflow-px-10);
-  border: var(--testflow-px-1) solid var(--testflow-line);
-  border-radius: var(--testflow-px-7);
-  background: white;
-}
-.testflow-workspace-symbol {
-  border-radius: var(--testflow-px-5);
-  background: var(--testflow-color-f0f4ed);
-  padding: var(--testflow-px-5);
-  color: var(--testflow-color-708469);
-}
 .testflow-nav-label {
   padding: var(--testflow-px-21) var(--testflow-px-12) var(--testflow-px-7);
   font-size: var(--testflow-px-9);

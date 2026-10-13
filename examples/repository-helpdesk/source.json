@@ -1,0 +1,6 @@
+{
+  "url": "https://github.com/Minecodex/TestFlow.git",
+  "commit": "7c89f3076ab637a3467fbf3d56f2ae7fc8f09e2e",
+  "processor": "examples/scenarios/tiny-helpdesk/processors.py",
+  "knowledge": "examples/scenarios/tiny-helpdesk/project/knowledge.json"
+}

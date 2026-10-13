@@ -1,0 +1,72 @@
+.testflow-transfer-identity {
+  overflow-wrap: anywhere;
+  font-size: var(--testflow-font-sm);
+  color: var(--testflow-muted);
+}
+.testflow-node-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.testflow-node-delete { opacity: 0; pointer-events: none; }
+.testflow-flow-node:hover .testflow-node-delete, .react-flow__node:focus-within .testflow-node-delete,
+.testflow-selected .testflow-node-delete { opacity: 1; pointer-events: auto; }
+.testflow-node-delete .testflow-btn { padding: var(--testflow-px-4); }
+.testflow-edge-delete-anchor { opacity: 0; pointer-events: none; }
+.react-flow__edge:hover .testflow-edge-delete-anchor, .react-flow__edge:focus-within .testflow-edge-delete-anchor { opacity: 1; pointer-events: auto; }
+.testflow-edge-delete { display: inline-flex; }
+.testflow-edge-delete .testflow-btn { width: var(--testflow-px-28); height: var(--testflow-px-28); padding: var(--testflow-px-5); box-shadow: var(--testflow-shadow); }
+.testflow-edge-delete .testflow-btn:hover, .testflow-node-delete .testflow-btn:hover { color: var(--testflow-danger); background: var(--testflow-danger-soft); }
+.testflow-node-platform-settings { border: var(--testflow-px-1) solid var(--testflow-line); border-radius: var(--testflow-px-8); padding: var(--testflow-px-12); }
+.testflow-node-platform-settings summary { cursor: pointer; font-size: var(--testflow-font-sm); }
+.testflow-node-platform-settings .testflow-node-setting { border-top: var(--testflow-px-1) solid var(--testflow-line); padding-top: var(--testflow-px-12); margin-top: var(--testflow-px-12); }
+
+.testflow-canvas-tools {
+  position: absolute;
+  top: var(--testflow-px-12);
+  right: var(--testflow-px-12);
+  display: flex;
+  gap: var(--testflow-px-6);
+  z-index: 5;
+}
+.testflow-canvas-tools .testflow-btn {
+  min-height: var(--testflow-control-height);
+  background: var(--testflow-surface);
+  box-shadow: var(--testflow-shadow);
+}
+.testflow-canvas-library {
+  position: absolute;
+  top: var(--testflow-px-12);
+  left: var(--testflow-px-12);
+  bottom: var(--testflow-px-60);
+  width: var(--testflow-canvas-library-width);
+  z-index: 5;
+  display: flex;
+  background: var(--testflow-surface);
+  border: var(--testflow-px-1) solid var(--testflow-line);
+  border-radius: var(--testflow-px-8);
+  box-shadow: var(--testflow-shadow);
+}
+.testflow-canvas-library .testflow-palette {
+  width: 100%;
+}
+.testflow-palette > .testflow-row {
+  margin-bottom: var(--testflow-px-12);
+}
+.testflow-palette > .testflow-row .testflow-btn {
+  width: auto;
+  margin: 0;
+}
+.testflow-node-settings .testflow-schema-row {
+  grid-template-columns: var(--testflow-px-22) minmax(0, 1fr) var(
+      --testflow-px-100
+    );
+}
+.testflow-node-settings .testflow-schema-row > .testflow-field:nth-child(4) {
+  grid-column: 1 / -1;
+}
+.testflow-node-settings .testflow-schema-row > .testflow-checkbox {
+  grid-column: 1 / 3;
+}
+.testflow-node-settings .testflow-schema-row > .testflow-btn {
+  justify-self: end;
+}
+.testflow-node-settings .testflow-schema-row > .testflow-btn:last-child {
+  grid-column: 2 / -1;
+}

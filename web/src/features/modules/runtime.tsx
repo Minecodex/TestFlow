@@ -46,6 +46,8 @@ export function RuntimeEditor({
         disabled={readonly}
         onChange={(image) => patch({ image })}
       />
+      <Text label={t.modules.port} type="number" value={value.port ?? 8080} disabled={readonly}
+        onChange={(port) => patch({port: Number(port)})} />
       {!readonly && (
         <CredentialSelect
           kind="registry"

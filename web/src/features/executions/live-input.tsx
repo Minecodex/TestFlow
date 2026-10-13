@@ -193,7 +193,7 @@ export function LiveInput({
         {schema.fields.map((field) => (
           <div className="testflow-outline" key={field.name}>
             <h3>
-              {field.name} · {field.type}
+              {field.name} · {t.common.types[field.type]}
             </h3>
             {field.type === "Text" ? (
               <>

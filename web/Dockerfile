@@ -1,4 +1,4 @@
-FROM node:24-alpine AS build
+FROM --platform=$BUILDPLATFORM node:24-alpine AS build
 RUN npm install --global pnpm@10.23.0
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

@@ -106,9 +106,13 @@ Pod 获取 `TESTFLOW_PLATFORM_URL`、`TESTFLOW_RUNTIME_ID`、`TESTFLOW_RUNTIME_T
 
 组件是 ES module，导出 `sdk = "testflow.ui.v1"` 和默认 React 组件。宿主 `window.TestFlowHost` 提供共享 React、JSXRuntime、HeroUI。组件接收 value、onChange、readonly、schema、locale、theme 和固定模块版本 identity。组件不打包另一份 React/HeroUI。失败时宿主显示错误与只读参数，保留已保存值。
 
+镜像、端口、资源和固定仓库挂载属于模块运行默认值：导入采用 manifest 声明，在模块详情通过 `PUT /api/v1/modules/{id}/runtime` 保存新平台修订并验证。原 manifest、参数 Schema 和 ZIP 摘要不变。流程节点侧栏仅编辑名称、描述和此组件定义的业务参数；新节点复制所选模块修订的运行默认值，已有流程和执行快照保持固定配置。
+
 示例源码、Dockerfile、UI 和打包工具见 `examples/modules/`、`scripts/module-package.py`。ZIP 默认包含契约和 UI；构建镜像是明确的开发工具操作，平台导入不会执行构建。
 
 模块自己的外部服务凭据可使用参数 Schema 的 `x-testflow-credential: true` 标记字符串引用。配置只保存 credential_id；凭据类别为 module。模块通过 `GET /api/v1/module-resources/{runtime_id}/credentials/{credential_id}?execution_id=...` 读取本次参数明确授权的引用，不能读取 Git、镜像、评测或其他节点凭据。已读取的敏感正文和运行 token 会从执行事件/输出证据中移除，导出只保留引用。凭据始终由模块代码决定如何使用，不增加“外部接口来源”枚举。
+
+组件加载成功时，宿主还为顶层、`type: string` 且显式标记 `x-testflow-credential: true` 的业务字段提供“配置能力凭据”入口，选择或创建后将引用 ID 回写组件参数。嵌套或组合 Schema 字段由模块自己的组件通过 SDK 实现。此入口不管理 Pod registry 凭据。
 
 参数 Schema 固定使用 JSON Schema Draft 2020-12，`$schema` 可省略或为 `https://json-schema.org/draft/2020-12/schema`。只允许当前 Schema 内的 `#` 引用，禁止依赖可变的远端 Schema。参数默认值、前端草稿、保存及执行参数均按同一版本校验，校验不转换类型或改写用户值。`format` 为注释，不作为参数验证断言。宿主 SDK 的 `credentialOptions("module")` 返回可选择的引用，正文不会返回前端。Git SSH 凭据支持含 private_key、known_hosts 的 JSON；HTTP 凭据支持 Token 或 username/password JSON。
 

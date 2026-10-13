@@ -10,19 +10,19 @@ from testflow.features.tasks.reports import current_report, freeze_report
 from testflow.features.tasks.service import create_task, plan_task
 from testflow.infrastructure.models import Event, Execution, PlanItem, Report, Task
 from testflow.infrastructure.operations import enqueue, idempotent
-from testflow.infrastructure.revisions import serialize
+from testflow.infrastructure.revisions import resource_changed, serialize
 
 router = APIRouter(prefix="/tasks", tags=["tasks"], dependencies=[Depends(require_admin)])
 
 
 @router.post("/preview", response_model=PlanPreviewResponse)
-async def preview(body: TaskBody, db=Depends(session)):
+async def preview(body: TaskBody, db=Depends(session, scope="function")):
     plan = await plan_task(db, body)
     return {**plan, "items": [{"name": i["case"]["name"], "pair_id": i["pair_id"], "repetition": i["repetition"], "dataset": i["dataset"]["name"], "pipeline": i["pipeline"]["name"], "input_snapshot": i["inputs"], "reference_confirmed": i["reference_confirmed"]} for i in plan["items"]]}
 
 
 @router.post("", response_model=TaskResponse)
-async def submit(body: TaskBody, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session)):
+async def submit(body: TaskBody, idempotency_key: str = Header(..., min_length=1, max_length=128), db=Depends(session, scope="function")):
     async def create():
         task = await create_task(db, body)
         operation = await enqueue(db, "task.run", {"task_id": task["id"]})
@@ -31,7 +31,7 @@ async def submit(body: TaskBody, idempotency_key: str = Header(..., min_length=1
 
 
 @router.get("", response_model=TaskPageResponse)
-async def tasks(hidden: bool = False, search: str = "", page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100), db=Depends(session)):
+async def tasks(hidden: bool = False, search: str = "", page: int = Query(1, ge=1), page_size: int = Query(30, ge=1, le=100), db=Depends(session, scope="function")):
     where = [Task.hidden == hidden]
     if search: where.append(Task.name.ilike("%" + search + "%"))
     total = await db.scalar(select(func.count()).select_from(Task).where(*where))
@@ -40,21 +40,21 @@ async def tasks(hidden: bool = False, search: str = "", page: int = Query(1, ge=
 
 
 @router.get("/{task_id}", response_model=TaskDetailResponse)
-async def task(task_id: str, db=Depends(session)):
+async def task(task_id: str, db=Depends(session, scope="function")):
     row = await db.get(Task, task_id)
     if not row: fail("not_found", "Task not found", 404)
     return {**serialize(row), "report": await current_report(db, task_id)}
 
 
 @router.get("/{task_id}/reports", response_model=ReportsResponse)
-async def reports(task_id: str, db=Depends(session)):
+async def reports(task_id: str, db=Depends(session, scope="function")):
     if not await db.get(Task, task_id): fail("not_found", "Task not found", 404)
     rows = (await db.scalars(select(Report).where(Report.task_id == task_id).order_by(Report.created.desc(), Report.id.desc()))).all()
     return {"current": await current_report(db, task_id), "items": [serialize(r) for r in rows]}
 
 
 @router.post("/{task_id}/cancel")
-async def cancel(task_id: str, request: Request, db=Depends(session)):
+async def cancel(task_id: str, request: Request, db=Depends(session, scope="function")):
     row = await db.scalar(select(Task).where(Task.id == task_id).with_for_update())
     if not row: fail("not_found", "Task not found", 404)
     if row.state in {"completed", "completed_with_errors", "canceled"}: return {"state": row.state}
@@ -81,16 +81,9 @@ async def cancel(task_id: str, request: Request, db=Depends(session)):
 
 
 @router.post("/{task_id}/hide")
-async def hide(task_id: str, db=Depends(session)):
+async def hide(task_id: str, db=Depends(session, scope="function")):
     row = await db.get(Task, task_id)
     if not row: fail("not_found", "Task not found", 404)
     row.hidden = True
+    await resource_changed(db, "tasks", row.id, None, True)
     return {"hidden": True}
-
-
-@router.post("/{task_id}/restore")
-async def restore(task_id: str, db=Depends(session)):
-    row = await db.get(Task, task_id)
-    if not row: fail("not_found", "Task not found", 404)
-    row.hidden = False
-    return {"hidden": False}

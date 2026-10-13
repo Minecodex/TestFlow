@@ -11,14 +11,20 @@ def logical(schema):
     return [{k: v for k, v in f.items() if k != "stream"} for f in schema["fields"]]
 
 
-async def freeze_inputs(db, schema, bindings):
+async def freeze_inputs(db, schema, bindings, *, current_assets=False, asset_cache=None):
     if set(bindings) != {f["name"] for f in schema["fields"]}: fail("input_fields", "Inputs must bind the full ordered group")
     result = {}
     for field in schema["fields"]:
         binding = bindings[field["name"]]
         if hasattr(binding, "model_dump"): binding = binding.model_dump(mode="json")
         if binding.get("asset_id"):
-            asset = await get_resource(db, "assets", binding["asset_id"], binding["asset_version"])
+            identifier = binding["asset_id"]
+            version = None if current_assets else binding.get("asset_version")
+            asset = asset_cache.get(identifier) if current_assets and asset_cache is not None else None
+            if asset is None:
+                asset = await get_resource(db, "assets", identifier, version)
+                if current_assets and asset_cache is not None:
+                    asset_cache[identifier] = asset
             if asset["hidden"] or asset["data"]["type"] != field["type"] or asset["data"]["format"] != field["format"]:
                 fail("invalid_input", "Input asset must be visible and match type and format", fields={field["name"]: "asset"})
             if field["type"] == "Text": result[field["name"]] = {"value": asset["data"]["text"], "asset": asset}
@@ -85,15 +91,18 @@ async def plan_task(db, body):
     if profile["hidden"]: fail("hidden_resource", "Restore evaluation profile first")
     items, restrictions, pairs = [], [], []
     duplicate_pairs = set()
+    asset_cache = {}
     for pair in body.pairs:
         key = (pair.dataset_id, pair.dataset_version, pair.pipeline_id, pair.pipeline_version)
         if key in duplicate_pairs: fail("duplicate_pair", "Duplicate test pair")
         duplicate_pairs.add(key)
         dataset = await get_resource(db, "datasets", pair.dataset_id, pair.dataset_version)
         if dataset["hidden"]: fail("hidden_resource", "Restore dataset before creating a task")
+        if "output_schema" in dataset["data"]:
+            fail("outdated_dataset_contract", "Select the current input-only dataset revision", fields={"dataset_version": dataset["version"]})
         pipeline = await freeze_pipeline(db, pair.pipeline_id, pair.pipeline_version)
-        if logical(dataset["data"]["input_schema"]) != logical(pipeline["graph"]["input_schema"]) or logical(dataset["data"]["output_schema"]) != logical(pipeline["graph"]["output_schema"]):
-            fail("pair_schema_mismatch", "Dataset and pipeline named groups must match exactly")
+        if logical(dataset["data"]["input_schema"]) != logical(pipeline["graph"]["input_schema"]):
+            fail("pair_schema_mismatch", "Dataset inputs must match the pipeline start group exactly")
         if not dataset["data"]["cases"]: fail("empty_dataset", "Dataset must contain cases")
         for n in pipeline["graph"]["nodes"]:
             if n["kind"] == "module" and n["runtime"]["requires_sequential"]:
@@ -102,13 +111,16 @@ async def plan_task(db, body):
         pair_id = uid(); pairs.append({"id": pair_id, **pair.model_dump(mode="json")})
         seen = set()
         for case in dataset["data"]["cases"]:
-            identity = digest({"inputs": case["inputs"], "reference": case["reference"], "confirmed": case["reference_confirmed"]})
+            inputs = await freeze_inputs(db, dataset["data"]["input_schema"], case["inputs"], current_assets=True, asset_cache=asset_cache)
+            identity = digest(inputs)
             if identity in seen: continue
             seen.add(identity)
-            inputs = await freeze_inputs(db, dataset["data"]["input_schema"], case["inputs"])
+            frozen_case = {k: deepcopy(v) for k, v in case.items() if k in {"id", "name", "inputs"}}
+            frozen_case["inputs"] = {name: {"asset_id": value["asset"]["id"], "asset_version": value["asset"]["selected_version"]}
+                                     if value.get("asset") else {"value": value["value"]} for name, value in inputs.items()}
             for repetition in range(pair.repetitions):
-                snapshot = {"case": case, "dataset": dataset, "pipeline": pipeline, "profile": bound_profile, "inputs": inputs,
-                            "reference": case["reference"], "reference_confirmed": case["reference_confirmed"], "repetition": repetition + 1, "pair_id": pair_id}
+                snapshot = {"case": frozen_case, "dataset": dataset, "pipeline": pipeline, "profile": bound_profile, "inputs": inputs,
+                            "reference": {}, "reference_confirmed": False, "reference_sources": {}, "repetition": repetition + 1, "pair_id": pair_id}
                 items.append(snapshot)
     for snapshot in items:
         snapshot["concurrency"] = {"requested": body.concurrency, "effective": 1 if restrictions else body.concurrency, "restrictions": restrictions}

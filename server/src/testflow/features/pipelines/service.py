@@ -8,6 +8,7 @@ from testflow.core.errors import fail
 from testflow.features.auth import validate_credential
 from testflow.infrastructure.models import Operation
 from testflow.infrastructure.revisions import get_resource
+from testflow.features.modules.runtime_config import effective_runtime, validate_runtime
 
 
 def validate_graph(graph: dict) -> list[dict]:
@@ -102,25 +103,16 @@ async def resolve_graph(db, body: PipelineBody, *, require_available=False) -> d
             n["module_snapshot"] = module
             data = module["data"]
             n["input_schema"], n["output_schema"] = data["inputs"], data["outputs"]
-            n["runtime"] = n["runtime"] or data["manifest"]["runtime"]
-            declared = data["manifest"]["runtime"]
-            if declared["requires_sequential"] and not n["runtime"]["requires_sequential"]:
-                fail("sequential_required", "The module requires sequential execution", fields={n["id"]: "requires_sequential"})
-            if declared["reuse_scope"] == "execution_node" and n["runtime"]["reuse_scope"] != "execution_node":
-                fail("isolated_instance_required", "The module requires a separate Pod per execution", fields={n["id"]: "reuse_scope"})
+            n["runtime"] = n["runtime"] or effective_runtime(data)
+            repository = await validate_runtime(db, data, n["runtime"], require_visible=require_available)
             param_errors = list(Draft202012Validator(data["parameters"]).iter_errors(n["parameters"]))
             if param_errors:
                 fail("invalid_parameters", "Module parameters do not match Schema", fields={n["id"]: param_errors[0].message})
-            await validate_credential(db, n["runtime"].get("registry_credential_id"), "registry")
             from testflow.infrastructure.redaction import credential_refs
             for reference in credential_refs(data["parameters"], n["parameters"]):
                 await validate_credential(db, reference, "module")
-            mount = n["runtime"].get("code_mount")
-            if mount:
-                repo = await get_resource(db, "repositories", mount["repository_id"], mount["repository_version"])
-                if repo["data"].get("commit") != mount["commit"] or not repo["data"].get("code_path") or (repo["hidden"] and require_available):
-                    fail("code_unavailable", "A synced fixed repository commit is required")
-                n["repository_snapshot"] = repo
+            if repository:
+                n["repository_snapshot"] = repository
             if require_available:
                 validations = (await db.scalars(select(Operation).where(Operation.kind == "module.validate", Operation.state == "succeeded").order_by(Operation.created.desc()))).all()
                 valid = next((v for v in validations if v.payload.get("revision_id") == module["revision_id"] and v.payload.get("runtime") == n["runtime"]), None)

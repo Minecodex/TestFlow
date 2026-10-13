@@ -1,40 +1,27 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { EyeOff, KeyRound } from "lucide-react";
+import { KeyRound, RotateCcw, Trash2 } from "lucide-react";
 import { getJson, write } from "../api/client";
 import { useOperation, useWrite } from "../api/hooks";
 import type { Credential, Resource } from "../api/types";
 import { useMessages } from "../../i18n";
-import { Action, Choice, Dialog, Failure, Json, Notice, Status, Text } from ".";
-import { HideIcon } from "../icons";
-export function Hide({
+import { Action, DeleteAction, Choice, Dialog, Failure, Json, Notice, Status, Text } from ".";
+export function DeleteResource({
   kind,
   resource,
-  iconOnly = false,
 }: {
   kind: string;
   resource: { id: string; name: string; hidden?: boolean };
-  iconOnly?: boolean;
 }) {
   const t = useMessages();
   const [open, setOpen] = useState(false);
   const mutation = useWrite(() =>
-    write(`/${kind}/${resource.id}/${resource.hidden ? "restore" : "hide"}`),
+    write(`/${kind}/${resource.id}/hide`),
   );
   return (
     <>
-      <Action
-        size="sm"
-        isIconOnly={iconOnly}
-        variant={iconOnly ? "ghost" : "outline"}
-        action={resource.hidden ? "restore-resource" : "hide-resource"}
-        data-resource-id={resource.id}
-        aria-label={`${resource.hidden ? t.common.restore : t.common.hide} ${resource.name}`}
-        onPress={() => setOpen(true)}
-      >
-        <HideIcon />
-        {!iconOnly && (resource.hidden ? t.common.restore : t.common.hide)}
-      </Action>
+      {!resource.hidden && <DeleteAction action="hide-resource" data-resource-id={resource.id} aria-label={`${t.common.delete} ${resource.name}`} onPress={() => setOpen(true)} />}
+
       {open && (
         <Dialog
           title={resource.name}
@@ -59,13 +46,13 @@ export function Hide({
                   })
                 }
               >
-                {resource.hidden ? t.common.restore : t.common.confirmHide}
+                {t.common.confirmDelete}
               </Action>
             </>
           }
         >
           <Notice>
-            {resource.hidden ? t.common.restoreConfirm : t.common.hideConfirm}
+            {t.common.deleteConfirm}
           </Notice>
           <Failure error={mutation.error} />
         </Dialog>
@@ -121,69 +108,22 @@ export function Versions({
     </Dialog>
   );
 }
-export function Credentials({ onClose }: { onClose: () => void }) {
+function AccessCredential({ kind, onClose, onSaved }: {kind?: string; onClose: () => void; onSaved: (value: Credential) => void}) {
   const t = useMessages();
-  const query = useCredentials();
   const [name, setName] = useState("");
-  const [kind, setKind] = useState("evaluation");
+  const [type, setType] = useState(kind === "git" ? "git-http" : kind || "module");
   const [value, setValue] = useState("");
-  const mutation = useWrite(() => write("/credentials", { name, kind, value }));
-  return (
-    <Dialog
-      title={t.common.credentials}
-      onClose={onClose}
-      footer={
-        <Action
-          primary
-          isPending={mutation.isPending}
-          isDisabled={!name || !value}
-          onPress={() =>
-            mutation.mutate(undefined, {
-              onSuccess: () => {
-                setName("");
-                setValue("");
-              },
-            })
-          }
-        >
-          {t.common.create}
-        </Action>
-      }
-    >
-      <div className="testflow-stack">
-        <Failure error={mutation.error || query.error} />
-        {query.data?.items.map((c) => (
-          <div className="testflow-row" key={c.id}>
-            <KeyRound />
-            <strong>{c.name}</strong>
-            <span>{c.kind}</span>
-            <code>{c.id}</code>
-          </div>
-        ))}
-        <Text label={t.common.name} value={name} onChange={setName} required />
-        <Choice
-          label={t.common.fieldType}
-          value={kind}
-          options={[
-            "git-http",
-            "git-ssh",
-            "registry",
-            "evaluation",
-            "module",
-          ].map((id) => ({ id, name: id }))}
-          onChange={setKind}
-        />
-        <Text
-          label={t.common.credentialValue}
-          value={value}
-          onChange={setValue}
-          type="password"
-          multiline={kind === "git-ssh" || kind === "registry"}
-          required
-        />
-      </div>
-    </Dialog>
-  );
+  const save = useWrite(() => write<Credential>("/credentials", {name, kind: type, value}));
+  return <Dialog title={t.common.configureCredential} onClose={() => {if(!save.isPending) onClose();}}
+    footer={<><Action isDisabled={save.isPending} onPress={onClose}>{t.common.cancel}</Action>
+      <Action primary isPending={save.isPending} isDisabled={!name.trim() || !value.trim()} onPress={() => save.mutate(undefined, {onSuccess: onSaved})}>{t.common.save}</Action></>}>
+    <div className="testflow-stack">
+      <Text label={t.common.name} value={name} onChange={setName} />
+      {kind === "git" && <Choice label={t.common.fieldType} value={type} options={[{id:"git-http", name:"HTTP Token"},{id:"git-ssh",name:"SSH"}]} onChange={setType} />}
+      <Text label={t.common.credentialValue} type="password" multiline={type === "git-ssh" || type === "registry"} value={value} onChange={setValue} />
+      <Failure error={save.error} />
+    </div>
+  </Dialog>;
 }
 export function useCredentials() {
   return useQuery({
@@ -201,8 +141,10 @@ export function CredentialSelect({
   kind?: string;
 }) {
   const query = useCredentials();
+  const [configuring, setConfiguring] = useState(false);
   const t = useMessages();
   return (
+    <>
     <Choice
       label={t.common.credential}
       value={value || "__none"}
@@ -216,6 +158,9 @@ export function CredentialSelect({
         ) || []),
       ]}
     />
+    <Action size="sm" onPress={() => setConfiguring(true)}><KeyRound />{t.common.configureCredential}</Action>
+    {configuring && <AccessCredential kind={kind} onClose={() => setConfiguring(false)} onSaved={value => {onChange(value.id);setConfiguring(false);}} />}
+    </>
   );
 }
 export function OperationStatus({ id }: { id?: string }) {

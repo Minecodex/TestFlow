@@ -1,5 +1,4 @@
 """Create a private development config; never overwrite an existing one."""
-import secrets
 from pathlib import Path
 from argon2 import PasswordHasher
 from cryptography.fernet import Fernet
@@ -8,7 +7,7 @@ root = Path(__file__).resolve().parents[1]
 path = root / '.env'
 if path.exists():
     raise SystemExit('Existing .env preserved')
-password = secrets.token_urlsafe(18)
+password = '123456'
 key = Fernet.generate_key().decode()
 values = {
     'TESTFLOW_ENVIRONMENT': 'development',

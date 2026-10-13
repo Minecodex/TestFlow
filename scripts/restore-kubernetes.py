@@ -9,7 +9,7 @@ from kubernetes_support import add_cluster_arguments, namespace_target
 
 ROOT=Path(__file__).resolve().parents[1]
 p=argparse.ArgumentParser();p.add_argument('--namespace',required=True);p.add_argument('--backup',required=True,type=Path);add_cluster_arguments(p);args=p.parse_args()
-if not args.namespace.startswith('testflow-'):raise SystemExit('Restore requires an explicit TestFlow namespace')
+if args.namespace != 'testflow' and not args.namespace.startswith('testflow-'):raise SystemExit('Restore requires an explicit TestFlow namespace')
 target=namespace_target(args.namespace,args);env=target.environment
 cli=target.command(args.namespace)
 def run(*cmd,**options):return subprocess.run(cli+list(cmd),env=env,check=True,capture_output=True,**options)

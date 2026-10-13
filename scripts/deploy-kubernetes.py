@@ -1,23 +1,26 @@
 """Create a namespaced TestFlow installation in an explicit Kubernetes context."""
 import argparse
 import json
-import secrets
-from urllib.parse import quote
-
-from argon2 import PasswordHasher
-from cryptography.fernet import Fernet
 import yaml
 
+from kubernetes_installation import create_installation
 from kubernetes_support import ROOT, KubernetesTarget, add_cluster_arguments, load_local_images
 
 parser = argparse.ArgumentParser()
 add_cluster_arguments(parser)
 parser.add_argument('--namespace', required=True)
 parser.add_argument('--port', type=int, default=18765)
+parser.add_argument('--server-image', default='testflow-server:dev',
+                    help='Backend and migration image (default: testflow-server:dev)')
+parser.add_argument('--web-image', default='testflow-web:dev',
+                    help='Web image (default: testflow-web:dev)')
 parser.add_argument('--load-images', action='store_true')
 args = parser.parse_args()
-if not args.namespace.startswith('testflow-'):
-    raise SystemExit('Namespace must start with testflow-')
+if args.namespace != 'testflow' and not args.namespace.startswith('testflow-'):
+    raise SystemExit('Namespace must be testflow or start with testflow-')
+platform_images = {'testflow-server': args.server_image, 'testflow-web': args.web_image}
+if any(not image or any(char.isspace() for char in image) for image in platform_images.values()):
+    parser.error('Platform images must be non-empty image references without whitespace')
 target = KubernetesTarget.from_args(args)
 
 
@@ -29,36 +32,20 @@ existing = json.loads(run('get', 'namespaces', '-o', 'json'))['items']
 if any(item['metadata']['name'] == args.namespace for item in existing):
     raise SystemExit('Existing namespace preserved; choose a new namespace')
 rendered = target.run('kustomize', str(ROOT / 'deploy/k8s/base'), text=True).stdout
-resources = list(yaml.safe_load_all(rendered))
-for resource in resources:
-    resource['metadata']['namespace'] = args.namespace
-    if resource['kind'] == 'ConfigMap':
-        resource['data'].update(TESTFLOW_ENVIRONMENT='development',
-                                TESTFLOW_PUBLIC_URL=f'http://127.0.0.1:{args.port}',
-                                TESTFLOW_ALLOW_LOCAL_IMAGES='true', TESTFLOW_COOKIE_SECURE='false')
-    for container in resource.get('spec', {}).get('template', {}).get('spec', {}).get('containers', []):
-        if container['image'].startswith('testflow-'):
-            container['image'] = container['image'].split(':')[0] + ':dev'
+try:
+    installation = create_installation(list(yaml.safe_load_all(rendered)), args.namespace,
+                                       args.server_image, args.web_image, args.port)
+except ValueError as error:
+    parser.error(str(error))
+resources = installation.resources
 if args.load_images:
     examples = json.loads((ROOT / '.data/example-modules.json').read_text())
-    load_local_images(target, ['testflow-server:dev', 'testflow-web:dev', 'postgres:18'] +
+    load_local_images(target, [*platform_images.values(), 'postgres:18'] +
                       [item['image'] for item in examples])
 output = ROOT / '.data/kubernetes' / args.namespace
 output.mkdir(parents=True, exist_ok=True)
-password = secrets.token_urlsafe(20)
-db_password = secrets.token_urlsafe(24)
-key = Fernet.generate_key().decode()
-secret = {'apiVersion': 'v1', 'kind': 'Secret',
-          'metadata': {'name': 'testflow-secrets', 'namespace': args.namespace}, 'type': 'Opaque',
-          'stringData': {
-              'TESTFLOW_DATABASE_URL': f'postgresql+asyncpg://testflow:{quote(db_password)}@testflow-postgres:5432/testflow',
-              'TESTFLOW_ADMIN_PASSWORD_HASH': PasswordHasher().hash(password), 'TESTFLOW_ENCRYPTION_KEY': key}}
-postgres = {'apiVersion': 'v1', 'kind': 'Secret',
-            'metadata': {'name': 'testflow-postgres-secret', 'namespace': args.namespace},
-            'type': 'Opaque', 'stringData': {'password': db_password}}
-namespace = {'apiVersion': 'v1', 'kind': 'Namespace', 'metadata': {'name': args.namespace, 'labels': {
-    'app.kubernetes.io/part-of': 'testflow',
-    'testflow-acceptance': 'true' if args.namespace.startswith(('testflow-e2e-', 'testflow-restore-')) else 'false'}}}
+password = installation.password
+key = installation.encryption_key
 access = {'namespace': args.namespace, **target.access_fields(), 'url': f'http://127.0.0.1:{args.port}',
           'username': 'admin', 'password': password, 'encryption_key': key, 'port': args.port}
 file = output / 'access.json'
@@ -69,7 +56,8 @@ password_file.write_text(password + '\n')
 password_file.chmod(0o600)
 prerequisites = [item for item in resources if item['kind'] not in {'Deployment', 'Job'}]
 print(run('apply', '-f', '-', input=json.dumps({'apiVersion': 'v1', 'kind': 'List',
-                                              'items': [namespace, secret, postgres, *prerequisites]})), flush=True)
+                                              'items': [installation.namespace, *installation.secrets,
+                                                        *prerequisites]})), flush=True)
 print(run('rollout', 'status', 'statefulset/testflow-postgres', '--timeout=120s'), flush=True)
 for job in (item for item in resources if item['kind'] == 'Job'):
     print(run('apply', '-f', '-', input=json.dumps(job)), flush=True)

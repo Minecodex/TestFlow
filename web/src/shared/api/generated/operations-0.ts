@@ -675,6 +675,77 @@ export interface OperationsPart0 {
             };
         };
     };
+    save_runtime_api_v1_modules__module_id__runtime_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                module_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ModuleRuntimeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResourceResponse"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     validate_module_api_v1_modules__module_id__validate_post: {
         parameters: {
             query?: {
@@ -1183,7 +1254,7 @@ export interface OperationsPart0 {
             };
         };
     };
-    preview_api_v1_tasks_preview_post: {
+    export_assets_api_v1_assets_export_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1192,7 +1263,7 @@ export interface OperationsPart0 {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TaskBody"];
+                "application/json": components["schemas"]["AssetExport"];
             };
         };
         responses: {
@@ -1202,7 +1273,7 @@ export interface OperationsPart0 {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PlanPreviewResponse"];
+                    "application/zip": string;
                 };
             };
             /** @description Unauthorized */
@@ -1252,19 +1323,18 @@ export interface OperationsPart0 {
             };
         };
     };
-    tasks_api_v1_tasks_get: {
+    preview_api_v1_assets_import_preview_post: {
         parameters: {
-            query?: {
-                hidden?: boolean;
-                search?: string;
-                page?: number;
-                page_size?: number;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_preview_api_v1_assets_import_preview_post"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -1272,7 +1342,7 @@ export interface OperationsPart0 {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskPageResponse"];
+                    "application/json": components["schemas"]["AssetPreview"];
                 };
             };
             /** @description Unauthorized */
@@ -1322,7 +1392,7 @@ export interface OperationsPart0 {
             };
         };
     };
-    submit_api_v1_tasks_post: {
+    import_package_api_v1_assets_import_post: {
         parameters: {
             query?: never;
             header: {
@@ -1333,7 +1403,7 @@ export interface OperationsPart0 {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["TaskBody"];
+                "multipart/form-data": components["schemas"]["Body_import_package_api_v1_assets_import_post"];
             };
         };
         responses: {
@@ -1343,7 +1413,7 @@ export interface OperationsPart0 {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskResponse"];
+                    "application/json": components["schemas"]["AssetImportResult"];
                 };
             };
             /** @description Unauthorized */
@@ -1393,12 +1463,14 @@ export interface OperationsPart0 {
             };
         };
     };
-    task_api_v1_tasks__task_id__get: {
+    export_version_api_v1_datasets__dataset_id__export_get: {
         parameters: {
-            query?: never;
+            query?: {
+                version?: number | null;
+            };
             header?: never;
             path: {
-                task_id: string;
+                dataset_id: string;
             };
             cookie?: never;
         };
@@ -1410,7 +1482,7 @@ export interface OperationsPart0 {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TaskDetailResponse"];
+                    "application/json": components["schemas"]["DatasetDocument"];
                 };
             };
             /** @description Unauthorized */
@@ -1460,16 +1532,18 @@ export interface OperationsPart0 {
             };
         };
     };
-    reports_api_v1_tasks__task_id__reports_get: {
+    preview_api_v1_datasets_import_preview_post: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                task_id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DatasetImport"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -1477,7 +1551,7 @@ export interface OperationsPart0 {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReportsResponse"];
+                    "application/json": components["schemas"]["DatasetPreview"];
                 };
             };
             /** @description Unauthorized */
@@ -1527,16 +1601,20 @@ export interface OperationsPart0 {
             };
         };
     };
-    cancel_api_v1_tasks__task_id__cancel_post: {
+    import_dataset_api_v1_datasets_import_post: {
         parameters: {
             query?: never;
-            header?: never;
-            path: {
-                task_id: string;
+            header: {
+                "idempotency-key": string;
             };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DatasetImport"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
@@ -1544,74 +1622,7 @@ export interface OperationsPart0 {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Conflict */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Unprocessable Content */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Service Unavailable */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-        };
-    };
-    hide_api_v1_tasks__task_id__hide_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                task_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ResourceResponse"];
                 };
             };
             /** @description Unauthorized */

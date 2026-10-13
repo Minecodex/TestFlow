@@ -7,4 +7,9 @@
 @import "./overview.css";
 @import "./resource-cards.css";
 @import "./executions.css";
+@import "./pipelines.css";
+@import "./transfer.css";
+@import "./controls.css";
+@import "./evaluation.css";
+@import "./assets.css";
 @custom-variant dark (&:where(.dark, .dark *));

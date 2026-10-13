@@ -25,18 +25,11 @@ body {
 }
 .testflow-sidebar .testflow-brand {
   color: var(--testflow-text);
+  margin-bottom: var(--testflow-space-4);
 }
 .testflow-brand-mark svg {
   width: var(--testflow-px-23);
   height: var(--testflow-px-23);
-}
-.testflow-workspace-box {
-  margin: var(--testflow-px-25) var(--testflow-space-1) var(--testflow-space-3);
-  padding: var(--testflow-px-10);
-  border: 1px solid var(--testflow-line);
-  border-radius: var(--testflow-px-7);
-  background: var(--testflow-surface);
-  font-size: var(--testflow-font-sm);
 }
 .testflow-page-heading {
   display: flex;
@@ -228,7 +221,7 @@ textarea.testflow-input {
   display: grid;
   grid-template-columns:
     var(--testflow-px-22) minmax(0, 1fr) var(--testflow-px-100)
-    minmax(0, 1fr) var(--testflow-schema-stream-width) var(--testflow-px-32) var(--testflow-px-32);
+    minmax(0, 1fr) var(--testflow-schema-stream-width) var(--testflow-px-32) var(--testflow-px-72);
   align-items: center;
   gap: var(--testflow-px-8);
   padding: var(--testflow-px-10);

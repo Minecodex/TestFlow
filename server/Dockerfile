@@ -12,6 +12,8 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY server/src ./src
 COPY server/alembic.ini ./alembic.ini
 COPY server/migrations ./migrations
+COPY deploy/k8s/base ./deploy/k8s/base
+COPY scripts/render-kubernetes.py scripts/kubernetes_installation.py ./scripts/
 RUN uv sync --frozen --no-dev --no-editable && useradd --uid 10001 --create-home testflow
 ENV PATH="/app/.venv/bin:$PATH" TESTFLOW_DATA_DIR=/data
 USER 10001:10001

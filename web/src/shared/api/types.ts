@@ -9,10 +9,18 @@ export type Case = components["schemas"]["Case"];
 export type Binding = components["schemas"]["Binding"];
 export type Asset = components["schemas"]["AssetBody"];
 export type Repository = components["schemas"]["RepositoryBody"];
-export type Profile = components["schemas"]["EvaluationProfileBody"];
+export type Profile = Omit<components["schemas"]["EvaluationProfileBody"], "api_key">;
 export type Dimension = components["schemas"]["Dimension"];
 export type TaskBody = components["schemas"]["TaskBody"];
 export type QuickBody = components["schemas"]["QuickExecutionBody"];
+export type WorkflowDocument = components["schemas"]["WorkflowDocument"];
+export type WorkflowImport = components["schemas"]["WorkflowImport"];
+export type WorkflowPreview = components["schemas"]["WorkflowPreview"];
+export type AssetPreview = components["schemas"]["AssetPreview"];
+export type AssetImportResult = components["schemas"]["AssetImportResult"];
+export type DatasetDocument = components["schemas"]["DatasetDocument"];
+export type DatasetImport = components["schemas"]["DatasetImport"];
+export type DatasetPreview = components["schemas"]["DatasetPreview"];
 export type Page<T> = Omit<
   components["schemas"]["ResourcePageResponse"],
   "items"
@@ -23,6 +31,7 @@ export type Resource<T> = Omit<
 > & { data: T };
 export interface Module {
   name: string;
+  runtime?: Runtime;
   manifest: components["schemas"]["ModuleManifest"];
   inputs: Schema;
   outputs: Schema;

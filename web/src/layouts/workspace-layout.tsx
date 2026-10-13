@@ -1,16 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Languages,
   Moon,
   Sun,
-  Workflow,
-  LayoutDashboard,
-  Search,
-  RefreshCw,
-  ChevronRight,
-  Box,
-  ChevronDown,
-  KeyRound,
   Play,
   LogOut,
 } from "lucide-react";
@@ -28,132 +19,20 @@ import { usePreferences } from "../shared/state/preferences";
 import {
   Action,
   Badge,
-  Choice,
   Dialog,
-  Empty,
-  Failure,
-  Head,
-  Json,
   Notice,
-  Text,
 } from "../shared/ui";
-import { Credentials, Hide } from "../shared/ui/resources";
 import { getJson, write } from "../shared/api/client";
-import { useLive, useResources, useWrite } from "../shared/api/hooks";
+import { useLive, useWrite } from "../shared/api/hooks";
 import { SessionGate } from "../features/auth/page";
-import type { Resource } from "../shared/api/types";
-import { BoxIcon, FlowIcon, GridIcon } from "../shared/icons";
-const routeFor = (kind: string, id: string) =>
-  `/${kind === "tasks" ? "test-tasks" : kind}/${id}`;
-function GlobalSearch({ onClose }: { onClose: () => void }) {
-  const t = useMessages();
-  const [q, setQ] = useState("");
-  const navigate = useNavigate();
-  const search = useQuery({
-    queryKey: ["search", q],
-    queryFn: () =>
-      getJson<{
-        items: { id: string; name: string; kind: string; version?: number }[];
-      }>(`/system/search?q=${encodeURIComponent(q)}`),
-    enabled: q.length > 0,
-  });
-  return (
-    <Dialog title={t.common.search} onClose={onClose}>
-      <div className="testflow-stack">
-        <Text label={t.common.search} value={q} onChange={setQ} />
-        <Failure error={search.error} />
-        {!search.data?.items.length &&
-          !features.some((f) =>
-            t[f.id].title.toLowerCase().includes(q.toLowerCase()),
-          ) && <Empty text={t.common.emptySearch} />}
-        {features
-          .filter(
-            (f) => !q || t[f.id].title.toLowerCase().includes(q.toLowerCase()),
-          )
-          .map((f) => (
-            <Action
-              key={f.path}
-              onPress={() => {
-                navigate(f.path);
-                onClose();
-              }}
-            >
-              {t[f.id].title}
-            </Action>
-          ))}
-        {search.data?.items.map((r) => (
-          <Action
-            key={r.id}
-            className="testflow-search-result"
-            onPress={() => {
-              navigate(routeFor(r.kind, r.id));
-              onClose();
-            }}
-          >
-            <span>
-              {r.name}
-              <small className="testflow-muted testflow-block">
-                {r.id.slice(0, 8)}
-              </small>
-            </span>
-            <Badge>
-              {
-                t[
-                  features.find(
-                    (f) => f.path === routeFor(r.kind, "").replace(/\/$/, ""),
-                  )?.id || "executions"
-                ].title
-              }
-            </Badge>
-            {r.version && `v${r.version}`}
-          </Action>
-        ))}
-      </div>
-    </Dialog>
-  );
-}
-function Hidden({ onClose }: { onClose: () => void }) {
-  const t = useMessages();
-  const [kind, setKind] = useState("repositories");
-  const resources = useResources<unknown>(kind, "hidden=true");
-  return (
-    <Dialog title={t.common.hiddenResources} onClose={onClose}>
-      <div className="testflow-stack">
-        <Choice
-          label={t.common.fieldType}
-          value={kind}
-          options={features
-            .filter((f) => f.id !== "executions")
-            .map((f) => ({
-              id: f.id === "evaluation" ? "evaluation-profiles" : f.id,
-              name: t[f.id].title,
-            }))}
-          onChange={setKind}
-        />
-        <Failure error={resources.error} />
-        {resources.data?.items.map((r) => (
-          <div className="testflow-row testflow-between" key={r.id}>
-            <span className="testflow-stack">
-              <span>{r.name}</span>
-              <small className="testflow-tiny testflow-muted testflow-mono">
-                {r.id.slice(0, 8)}
-              </small>
-            </span>
-            <Hide kind={kind} resource={r} />
-          </div>
-        ))}
-        {resources.data?.items.length === 0 && <Empty text={t.common.empty} />}
-      </div>
-    </Dialog>
-  );
-}
+import { FlowIcon, GridIcon } from "../shared/icons";
 function Shell() {
   const t = useMessages();
   const { locale, theme, setLocale, setTheme } = usePreferences();
   const location = useLocation();
   const navigate = useNavigate();
   const query = useQueryClient();
-  const connected = useLive();
+  useLive();
   const [overlay, setOverlay] = useState("");
   const [guide, setGuide] = useState(-1);
   const current = features.find((f) => location.pathname.startsWith(f.path));
@@ -168,17 +47,9 @@ function Shell() {
     navigate("/login");
   });
   useEffect(() => {
-    const key = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setOverlay("search");
-      }
-    };
-    window.addEventListener("keydown", key);
     const about = () => setOverlay("about");
     window.addEventListener("testflow:about", about);
     return () => {
-      window.removeEventListener("keydown", key);
       window.removeEventListener("testflow:about", about);
     };
   }, []);
@@ -201,18 +72,6 @@ function Shell() {
             <div className="testflow-tiny testflow-muted">MODULE TEST LAB</div>
           </div>
         </NavLink>
-        <div className="testflow-workspace-box testflow-row">
-          <span className="testflow-workspace-symbol">
-            <BoxIcon />
-          </span>
-          <div className="testflow-grow">
-            <strong>{t.common.workspace}</strong>
-            <div className="testflow-tiny testflow-muted testflow-mono">
-              testflow_platform
-            </div>
-          </div>
-          <ChevronDown />
-        </div>
         <nav aria-label={t.common.navigation}>
           <NavLink className="testflow-nav-link" to="/" end>
             <GridIcon />
@@ -262,65 +121,17 @@ function Shell() {
               <LogOut />
             </Action>
           </div>
-          <Action
-            variant="ghost"
-            size="sm"
-            action="hidden-resources"
-            aria-label={t.common.hiddenResources}
-            className="testflow-hidden-link"
-            onPress={() => setOverlay("hidden")}
-          >
-            {t.common.hiddenResourcesLabel}
-          </Action>
-          <div className="testflow-footer-status testflow-row testflow-between">
-            <span>
-              <span className={`testflow-dot ${connected ? "testflow-text-green" : "testflow-recording"}`} aria-hidden="true" />{" "}
-              {connected ? t.common.connected : t.common.disconnected}
-            </span>
-            <span className="testflow-mono">v0.1</span>
-          </div>
+
         </div>
       </aside>
       <div className="testflow-main">
         <header className="testflow-topbar">
           <div className="testflow-breadcrumbs">
-            <span>{t.common.workspaceBreadcrumb}</span>
-            <ChevronRight />
             <strong>{current ? t[current.id].title : t.overview.title}</strong>
             <span className="testflow-breadcrumb-domain">{current?.id === "tasks" ? "TEST TASKS" : current?.id.toUpperCase() || "OVERVIEW"}</span>
           </div>
           <div className="testflow-row testflow-global-actions">
-            <Action
-              variant="ghost"
-              size="sm"
-              action="search"
-              className="testflow-topbar-search"
-              onPress={() => setOverlay("search")}
-            >
-              <span><Search /></span>
-              <span>{t.common.search}</span>
-              <kbd>Ctrl K</kbd>
-            </Action>
             <div className="testflow-row testflow-global-tools">
-            <Action
-              variant="ghost"
-              size="sm"
-              action="refresh-view"
-              aria-label={t.common.refresh}
-              onPress={() => {
-                void query.invalidateQueries();
-              }}
-            >
-              <RefreshCw />
-            </Action>
-            <Action
-              variant="ghost"
-              size="sm"
-              aria-label={t.common.credentials}
-              onPress={() => setOverlay("credentials")}
-            >
-              <KeyRound />
-            </Action>
             <Action
               variant="ghost"
               size="sm"
@@ -356,11 +167,6 @@ function Shell() {
           <p>TestFlow v0.1 · testflow.module.v1 · testflow.ui.v1</p>
         </Dialog>
       )}
-      {overlay === "search" && <GlobalSearch onClose={() => setOverlay("")} />}
-      {overlay === "credentials" && (
-        <Credentials onClose={() => setOverlay("")} />
-      )}
-      {overlay === "hidden" && <Hidden onClose={() => setOverlay("")} />}
       {guide >= 0 && (
         <aside className="testflow-guide">
           <div className="testflow-eyebrow">

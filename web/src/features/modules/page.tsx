@@ -25,18 +25,19 @@ import {
   Dialog,
   Empty,
   Failure,
+  EditAction,
   Head,
   Json,
   Notice,
   Status,
 } from "../../shared/ui";
-import { Hide, OperationStatus, Versions } from "../../shared/ui/resources";
+import { DeleteResource, OperationStatus, Versions } from "../../shared/ui/resources";
 import { ModulePanel } from "../../shared/module-host/host";
-import { RuntimeEditor } from "./runtime";
-import { ModuleValidation } from "./validation";
+import { RuntimeConfiguration } from "./configuration";
+import { moduleRuntime } from "./config";
 import { AudioIcon, CodeIcon, HistoryIcon, ImageIcon, MergeIcon, SparkIcon } from "../../shared/icons";
 function ModuleIcon({ module }: { module: Module }) {
-  const Icon = module.manifest.runtime.requires_sequential ? HistoryIcon
+  const Icon = moduleRuntime(module).requires_sequential ? HistoryIcon
     : module.inputs.fields.length > 1 ? MergeIcon
     : [...module.inputs.fields,...module.outputs.fields].some(f=>f.type==="Audio") ? AudioIcon
     : module.inputs.fields[0]?.type === "Image" ? ImageIcon : SparkIcon;
@@ -51,7 +52,7 @@ function Detail({
 }) {
   const t = useMessages();
   const navigate = useNavigate();
-  const [runtime, setRuntime] = useState<Runtime>(module.data.manifest.runtime);
+  const [runtimeBlocked, setRuntimeBlocked] = useState(false);
   return (
     <Dialog
       drawer
@@ -62,6 +63,7 @@ function Detail({
           <Action
             action="module-to-flow"
             primary
+            isDisabled={runtimeBlocked}
             onPress={() =>
               navigate(
                 `/pipelines?module=${module.id}&module_version=${module.selected_version}`,
@@ -70,13 +72,13 @@ function Detail({
           >
             {t.modules.use}
           </Action>
-          <Hide kind="modules" resource={module} />
+          <DeleteResource kind="modules" resource={module} />
         </>
       }
     >
       <div className="testflow-stack">
         <Badge>
-          {module.data.manifest.runtime.requires_sequential
+          {moduleRuntime(module.data).requires_sequential
             ? t.modules.sequential
             : t.modules.parallel}
         </Badge>
@@ -85,13 +87,8 @@ function Detail({
         <Json value={module.data.inputs} />
         <h3>{t.common.outputSchema}</h3>
         <Chips schema={module.data.outputs} />
-        <h3>Kubernetes Pod</h3>
-        <RuntimeEditor value={runtime} onChange={setRuntime} />
-        <ModuleValidation
-          key={module.revision_id}
-          module={module}
-          runtime={runtime}
-        />
+        <h3>{t.modules.runtimeConfiguration}</h3>
+        <RuntimeConfiguration module={module} onBlocked={setRuntimeBlocked} />
         <h3>{t.modules.readonly}</h3>
         <ModulePanel
           module={module}
@@ -135,8 +132,6 @@ export function ModulesPage() {
     <>
       <Head
         title={t.modules.title}
-        description={t.modules.description}
-        eyebrow="CAPABILITIES / 03"
         actions={
           <Action
             primary
@@ -179,8 +174,8 @@ export function ModulesPage() {
                   </span>
                 </div>
               </div>
-              <Badge state={m.data.manifest.runtime.requires_sequential ? "sequential" : "ready"}>
-                {m.data.manifest.runtime.requires_sequential
+              <Badge state={moduleRuntime(m.data).requires_sequential ? "sequential" : "ready"}>
+                {moduleRuntime(m.data).requires_sequential
                   ? t.modules.cardSequential
                   : t.modules.parallel}
               </Badge>
@@ -192,10 +187,9 @@ export function ModulesPage() {
             <p className="testflow-module-description">
               {m.data.manifest.description}
             </p>
-            <div className="testflow-module-line">
-              <Chips schema={m.data.inputs} />
-              <ArrowRight />
-              <Chips schema={m.data.outputs} />
+            <div className="testflow-module-contract-groups">
+              <div className="testflow-schema-section"><div className="testflow-eyebrow">{t.common.inputSchema}</div><Chips schema={m.data.inputs} /></div>
+              <div className="testflow-schema-section"><div className="testflow-eyebrow">{t.common.outputSchema}</div><Chips schema={m.data.outputs} /></div>
             </div>
             <div className="testflow-module-footer">
               <span className="testflow-tiny testflow-muted"><CodeIcon /> {t.modules.standardContract}</span>
@@ -209,15 +203,13 @@ export function ModulesPage() {
               <Action size="sm" variant="ghost" className="testflow-link" aria-label={t.common.versions} onPress={() => setVersions(m)}>
                 <span className="testflow-tag">{m.data.manifest.ui.split("/").at(-1)}</span>
               </Action>
-              <Action
-                size="sm"
-                variant="ghost"
-                action="module-detail"
-                onPress={() => navigate(`/modules/${m.id}`)}
-              >
-                {t.modules.contract}
-                <ArrowRight />
-              </Action>
+              <div className="testflow-row">
+                <EditAction action="edit-module-runtime" onPress={() => navigate(`/modules/${m.id}`)} />
+                <DeleteResource kind="modules" resource={m} />
+                <Action size="sm" variant="ghost" action="module-detail" onPress={() => navigate(`/modules/${m.id}`)}>
+                  {t.modules.contract}<ArrowRight />
+                </Action>
+              </div>
             </div>
           </article>
         ))}
@@ -225,7 +217,7 @@ export function ModulesPage() {
       {modules.data?.total === 0 && <Empty text={t.common.empty} />}
       {selected.data && (
         <Detail
-          key={selected.data.revision_id}
+          key={selected.data.id}
           module={selected.data}
           onClose={() => navigate("/modules")}
         />

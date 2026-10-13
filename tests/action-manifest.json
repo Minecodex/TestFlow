@@ -235,19 +235,27 @@
     "domain": "pipelines",
     "implementation": "web/src/features/pipelines/page.tsx",
     "api": "pipelines、validate、executions/quick",
-    "test": "tests/platform-controls.spec.mjs:confirm-edge-delete",
+    "test": "tests/node-configuration.e2e.mjs:edge-click-is-passive-hover-delete-is-explicit",
     "status": "browser_verified",
     "evidence": [
       ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
       ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/trace.zip"
     ],
     "cases": {
       "normal": [
-        "086-normal-remove-edge"
+        "086-normal-remove-edge",
+        "edge-click-is-passive-hover-delete-is-explicit"
       ],
       "alternate": [
-        "085-boundary-remove-edge"
+        "085-boundary-remove-edge",
+        "edge-click-is-passive-hover-delete-is-explicit"
       ]
     }
   },
@@ -441,27 +449,6 @@
     }
   },
   {
-    "id": "disconnect-node",
-    "domain": "pipelines",
-    "implementation": "web/src/features/pipelines/page.tsx",
-    "api": "pipelines、validate、executions/quick",
-    "test": "tests/platform-controls.spec.mjs:disconnect-node",
-    "status": "browser_verified",
-    "evidence": [
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
-    ],
-    "cases": {
-      "normal": [
-        "093-normal-disconnect-node"
-      ],
-      "alternate": [
-        "094-boundary-disconnect-node"
-      ]
-    }
-  },
-  {
     "id": "draft-add-case",
     "domain": "datasets",
     "implementation": "web/src/features/datasets/page.tsx",
@@ -564,6 +551,30 @@
       ],
       "alternate": [
         "066-negative-edit-dataset"
+      ]
+    }
+  },
+  {
+    "id": "edit-module-runtime",
+    "domain": "modules",
+    "implementation": "web/src/features/modules/page.tsx",
+    "api": "modules、versions",
+    "test": "tests/node-configuration.e2e.mjs:zip-provides-launch-defaults",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "zip-provides-launch-defaults"
+      ],
+      "alternate": [
+        "runtime-conflict-retains-draft"
       ]
     }
   },
@@ -799,6 +810,26 @@
     }
   },
   {
+    "id": "flow-settings",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines",
+    "test": "tests/interface-redesign.e2e.mjs:flow-settings",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-interface-20261012-07/interface-redesign/control-cases.json",
+      ".data/acceptance/testflow-e2e-interface-20261012-07/interface-redesign/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "settings-save-version-and-reload"
+      ],
+      "alternate": [
+        "settings-cancel-and-validation"
+      ]
+    }
+  },
+  {
     "id": "guide",
     "domain": "global",
     "implementation": "web/src/layouts/workspace-layout.tsx",
@@ -858,27 +889,6 @@
       ],
       "alternate": [
         "013-boundary-guide"
-      ]
-    }
-  },
-  {
-    "id": "hidden-resources",
-    "domain": "global",
-    "implementation": "web/src/layouts/workspace-layout.tsx",
-    "api": "system/search、auth、hide/restore",
-    "test": "tests/platform-controls.spec.mjs:hidden-resources",
-    "status": "browser_verified",
-    "evidence": [
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
-    ],
-    "cases": {
-      "normal": [
-        "027-normal-hidden-resources"
-      ],
-      "alternate": [
-        "028-boundary-hidden-resources"
       ]
     }
   },
@@ -1143,6 +1153,14 @@
     }
   },
   {
+    "id": "open-asset-source",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/references.tsx",
+    "api": "media/{id}、assets/{id}",
+    "test": "tests/input-only.e2e.mjs:open-asset-source",
+    "status": "mapped_evidence_review"
+  },
+  {
     "id": "open-flow",
     "domain": "pipelines",
     "implementation": "web/src/features/pipelines/page.tsx",
@@ -1236,27 +1254,6 @@
     }
   },
   {
-    "id": "refresh-view",
-    "domain": "global",
-    "implementation": "web/src/layouts/workspace-layout.tsx",
-    "api": "system/search、auth、hide/restore",
-    "test": "tests/platform-controls.spec.mjs:refresh-view",
-    "status": "browser_verified",
-    "evidence": [
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
-    ],
-    "cases": {
-      "normal": [
-        "019-normal-refresh-view"
-      ],
-      "alternate": [
-        "020-negative-refresh-view"
-      ]
-    }
-  },
-  {
     "id": "remove-case",
     "domain": "datasets",
     "implementation": "web/src/features/datasets/page.tsx",
@@ -1283,19 +1280,27 @@
     "domain": "pipelines",
     "implementation": "web/src/features/pipelines/page.tsx",
     "api": "pipelines、validate、executions/quick",
-    "test": "tests/platform-controls.spec.mjs:remove-edge",
+    "test": "tests/node-configuration.e2e.mjs:edge-click-is-passive-hover-delete-is-explicit",
     "status": "browser_verified",
     "evidence": [
       ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
       ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/trace.zip"
     ],
     "cases": {
       "normal": [
-        "086-normal-remove-edge"
+        "086-normal-remove-edge",
+        "edge-click-is-passive-hover-delete-is-explicit"
       ],
       "alternate": [
-        "085-boundary-remove-edge"
+        "085-boundary-remove-edge",
+        "edge-click-is-passive-hover-delete-is-explicit"
       ]
     }
   },
@@ -1304,19 +1309,27 @@
     "domain": "pipelines",
     "implementation": "web/src/features/pipelines/page.tsx",
     "api": "pipelines、validate、executions/quick",
-    "test": "tests/platform-controls.spec.mjs:remove-node",
+    "test": "tests/node-configuration.e2e.mjs:node-delete-belongs-to-canvas",
     "status": "browser_verified",
     "evidence": [
       ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
       ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
+      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/trace.zip"
     ],
     "cases": {
       "normal": [
-        "106-normal-remove-node"
+        "106-normal-remove-node",
+        "node-delete-belongs-to-canvas"
       ],
       "alternate": [
-        "105-boundary-add-node"
+        "105-boundary-add-node",
+        "node-delete-belongs-to-canvas"
       ]
     }
   },
@@ -1380,27 +1393,6 @@
       ],
       "alternate": [
         "150-negative-rerun-execution"
-      ]
-    }
-  },
-  {
-    "id": "restore-resource",
-    "domain": "global",
-    "implementation": "web/src/layouts/workspace-layout.tsx",
-    "api": "system/search、auth、hide/restore",
-    "test": "tests/platform-controls.spec.mjs:restore-resource",
-    "status": "browser_verified",
-    "evidence": [
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
-    ],
-    "cases": {
-      "normal": [
-        "030-normal-restore-resource"
-      ],
-      "alternate": [
-        "029-boundary-restore-resource"
       ]
     }
   },
@@ -1489,6 +1481,30 @@
     }
   },
   {
+    "id": "save-module-runtime",
+    "domain": "modules",
+    "implementation": "web/src/features/modules/configuration.tsx",
+    "api": "PUT modules/{id}/runtime、versions、validate",
+    "test": "tests/node-configuration.e2e.mjs:runtime-save-error-and-retry",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261012-05/node-configuration/trace.zip",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/result.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/control-cases.json",
+      ".data/acceptance/testflow-e2e-node-config-20261013-01/node-configuration/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "runtime-save-error-and-retry"
+      ],
+      "alternate": [
+        "runtime-conflict-retains-draft"
+      ]
+    }
+  },
+  {
     "id": "schema-add",
     "domain": "datasets",
     "implementation": "web/src/features/datasets/page.tsx",
@@ -1548,48 +1564,6 @@
       ],
       "alternate": [
         "042-boundary-schema-up"
-      ]
-    }
-  },
-  {
-    "id": "search",
-    "domain": "global",
-    "implementation": "web/src/layouts/workspace-layout.tsx",
-    "api": "system/search、auth、hide/restore",
-    "test": "tests/platform-controls.spec.mjs:search",
-    "status": "browser_verified",
-    "evidence": [
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
-    ],
-    "cases": {
-      "normal": [
-        "021-normal-search"
-      ],
-      "alternate": [
-        "022-boundary-search"
-      ]
-    }
-  },
-  {
-    "id": "search-execution",
-    "domain": "global",
-    "implementation": "web/src/layouts/workspace-layout.tsx",
-    "api": "system/search、auth、hide/restore",
-    "test": "tests/platform-controls.spec.mjs:search-execution",
-    "status": "browser_verified",
-    "evidence": [
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-cases.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/control-coverage.json",
-      ".data/acceptance/testflow-e2e-20261011-09/controls-9dfb2d6f/trace.zip"
-    ],
-    "cases": {
-      "normal": [
-        "023-normal-search-execution"
-      ],
-      "alternate": [
-        "024-negative-search-execution"
       ]
     }
   },
@@ -1717,6 +1691,27 @@
     }
   },
   {
+    "id": "toggle-node-library",
+    "domain": "pipelines",
+    "implementation": "web/src/features/pipelines/page.tsx",
+    "api": "pipelines",
+    "test": "tests/interface-redesign.e2e.mjs:toggle-node-library",
+    "status": "browser_verified",
+    "evidence": [
+      ".data/acceptance/testflow-e2e-interface-20261012-07/interface-redesign/control-cases.json",
+      ".data/acceptance/testflow-e2e-interface-20261012-07/interface-redesign/trace.zip"
+    ],
+    "cases": {
+      "normal": [
+        "canvas-default",
+        "library-toggle-search-and-add"
+      ],
+      "alternate": [
+        "library-escape"
+      ]
+    }
+  },
+  {
     "id": "trace-node",
     "domain": "executions",
     "implementation": "web/src/features/executions/page.tsx",
@@ -1757,6 +1752,14 @@
         "087-negative-validate-flow"
       ]
     }
+  },
+  {
+    "id": "view-image",
+    "domain": "assets",
+    "implementation": "web/src/features/assets/image-viewer.tsx",
+    "api": "media/{id}、assets/{id}",
+    "test": "tests/input-only.e2e.mjs:view-image",
+    "status": "mapped_evidence_review"
   },
   {
     "id": "zoom-in",

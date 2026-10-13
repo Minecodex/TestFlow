@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testflow-web
+  namespace: testflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: testflow-web
+  template:
+    metadata:
+      labels:
+        app: testflow-web
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: web
+        image: kakj/testflow-web:v0.0.1-beta
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 500m
+            memory: 128Mi
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: bootstrap
+        configMap:
+          name: testflow-bootstrap-code
+      initContainers:
+      - name: wait-backend
+        image: kakj/testflow-server:v0.0.1-beta
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - /bootstrap/bootstrap.py
+        - wait-backend
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: bootstrap
+          mountPath: /bootstrap
+          readOnly: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testflow-web
+  namespace: testflow
+spec:
+  selector:
+    app: testflow-web
+  ports:
+  - name: http
+    port: 8080
+    targetPort: http

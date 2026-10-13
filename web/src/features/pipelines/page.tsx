@@ -1,6 +1,8 @@
+import { DeleteAction } from "../../shared/ui";
 import { useResourceOptions } from "../../shared/api/hooks";
+import { useMutation } from "@tanstack/react-query";
 import { useListState } from "../../shared/ui/list-state";
-import { Pagination } from "../../shared/ui";
+import {Pagination} from "../../shared/ui";
 import { useEffect, useMemo, useState, useRef } from "react";
 import {
   useBlocker,
@@ -8,7 +10,19 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { ArrowRight, Boxes, Download, History, Plus, RotateCcw, Save, Workflow } from "lucide-react";
+import {
+  ArrowRight,
+  Boxes,
+  Download,
+  History,
+  Plus,
+  RotateCcw,
+  Save,
+  Settings2,
+  X,
+  Upload,
+  Workflow,
+} from "lucide-react";
 import { useMessages } from "../../i18n";
 import { ApiError, getJson, write } from "../../shared/api/client";
 import { useResource, useResources, useWrite } from "../../shared/api/hooks";
@@ -18,30 +32,19 @@ import type {
   Pipeline,
   Resource,
   Schema,
+  WorkflowDocument,
 } from "../../shared/api/types";
 import { textSchema } from "../../shared/api/types";
 import { ResourceCard } from "../../shared/ui/resource-card";
 import { FlowIcon } from "../../shared/icons";
-import {
-  Action,
-  Badge,
-  Chips,
-  Choice,
-  Dialog,
-  Empty,
-  Failure,
-  Head,
-  Json,
-  Notice,
-  SchemaEditor,
-  Text,
-  download,
-  useUnload,
-} from "../../shared/ui";
-import { Hide, Versions } from "../../shared/ui/resources";
+import {Action, Badge, Chips, Choice, Dialog, Empty, Failure, Head, Json, Notice, SchemaEditor, Text, download, useUnload} from "../../shared/ui";
+import { DeleteResource, Versions } from "../../shared/ui/resources";
 import { Canvas } from "./canvas";
 import { Inspector, useGraphModules } from "./inspector";
+import { moduleRuntime } from "../modules/config";
+import { ModuleVersion } from "../modules/version";
 import { QuickRun } from "./quick";
+import { ImportWorkflow } from "./transfer";
 import { parameterErrors, schemaIssues } from "../../shared/schema/validation";
 import { DraftConflict, restoreDraft } from "../../shared/ui/draft-conflict";
 import { RequestState } from "../../shared/ui/request-state";
@@ -63,6 +66,7 @@ function newPipeline(
       {
         id: "start",
         kind: "start",
+        description: "",
         name: startName,
         x: 40,
         y: 200,
@@ -74,6 +78,7 @@ function newPipeline(
       {
         id: "end",
         kind: "end",
+        description: "",
         name: endName,
         x: 440,
         y: 200,
@@ -84,7 +89,10 @@ function newPipeline(
         timeout: 30,
       },
     ],
-    edges: JSON.stringify(inputSchema)===JSON.stringify(outputSchema)?[{ source: "start", target: "end" }]:[],
+    edges:
+      JSON.stringify(inputSchema) === JSON.stringify(outputSchema)
+        ? [{ source: "start", target: "end" }]
+        : [],
   };
 }
 function Designer({ resource }: { resource: Resource<Pipeline> }) {
@@ -108,10 +116,32 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
   const [quick, setQuick] = useState(false);
   const [validationSignature, setValidationSignature] = useState("");
   const [settings, setSettings] = useState(false);
+  const [nodeSettings, setNodeSettings] = useState<Record<string, Partial<GraphNode>>>({});
+  const [nodeVersions, setNodeVersions] = useState<Record<string, Resource<Module>>>({});
+  const [library, setLibrary] = useState(false);
+  const [moduleSearch, setModuleSearch] = useState("");
+  const closeLibrary = () => {
+    setLibrary(false);
+    requestAnimationFrame(() =>
+      document
+        .querySelector<HTMLButtonElement>('[data-a="toggle-node-library"]')
+        ?.focus(),
+    );
+  };
+  const [inspecting, setInspecting] = useState(!!params.get("node"));
   const [metadata, setMetadata] = useState({
     name: draft.name,
     description: draft.description || "",
+    preparation_timeout: draft.preparation_timeout ?? 60,
+    cleanup_timeout: draft.cleanup_timeout ?? 10,
   });
+  const settingsValid =
+    Number.isFinite(metadata.preparation_timeout) &&
+    metadata.preparation_timeout > 0 &&
+    metadata.preparation_timeout <= 3600 &&
+    Number.isFinite(metadata.cleanup_timeout) &&
+    metadata.cleanup_timeout > 0 &&
+    metadata.cleanup_timeout <= 300 && Object.values(nodeSettings).every(node => node.timeout == null || Number.isFinite(node.timeout) && node.timeout > 0 && node.timeout <= 86400);
   const modules = useResourceOptions<Module>("modules");
   const nodeModules = useGraphModules(draft);
   const selected = params.get("node") || undefined;
@@ -139,6 +169,9 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
     [draft, nodeModules],
   );
   const dirty = JSON.stringify(draft) !== JSON.stringify(saved);
+  const exporting = useMutation({
+    mutationFn: () => write<WorkflowDocument>("/pipelines/export", draft),
+  });
   const invalidParameters = draft.nodes.filter(
     (node) =>
       node.kind === "module" &&
@@ -181,7 +214,8 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
     resource.version > baseVersion ||
     (save.error instanceof ApiError && save.error.status === 409);
   const saveNow = () => {
-    if (invalidSchema || invalidParameters.length || conflict || save.isPending) return;
+    if (invalidSchema || invalidParameters.length || conflict || save.isPending)
+      return;
     save.mutate(undefined, {
       onSuccess: (result) => {
         setBaseVersion(result.version);
@@ -192,9 +226,15 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
   };
   useEffect(() => {
     const saveShortcut = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || !(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "s") return;
+      if (
+        event.defaultPrevented ||
+        !(event.ctrlKey || event.metaKey) ||
+        event.key.toLowerCase() !== "s"
+      )
+        return;
       event.preventDefault();
-      if (!document.querySelector('[role="dialog"]')) saveNow();
+      if (!document.querySelector('[role="dialog"]:not(.testflow-node-drawer)'))
+        saveNow();
     };
     window.addEventListener("keydown", saveShortcut);
     return () => window.removeEventListener("keydown", saveShortcut);
@@ -239,6 +279,7 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
         ],
       ...position,
       parameters: structuredClone(module?.data.manifest.defaults || {}),
+      description: "",
       timeout: 30,
       mappings: [],
       input_schema:
@@ -257,25 +298,28 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
               : module?.data.outputs || null,
       module_id: module?.id,
       module_version: module?.selected_version,
-      runtime: module?.data.manifest.runtime,
+      runtime: module ? structuredClone(moduleRuntime(module.data)) : undefined,
       direction: kind === "conversion" ? "to_full" : null,
     };
     setDraft({ ...draft, nodes: [...draft.nodes, node] });
+    setLibrary(false);
+    setInspecting(false);
     setParams({ ...Object.fromEntries(params), node: id });
   };
-  const deleteNode = () => {
+  const deleteNode = (id = selected) => {
     if (
-      !selected ||
-      draft.nodes.find((n) => n.id === selected)?.kind === "start"
+      !id ||
+      draft.nodes.find((n) => n.id === id)?.kind === "start"
     )
       return;
     setDraft({
       ...draft,
-      nodes: draft.nodes.filter((n) => n.id !== selected),
+      nodes: draft.nodes.filter((n) => n.id !== id),
       edges: draft.edges.filter(
-        (e) => e.source !== selected && e.target !== selected,
+        (e) => e.source !== id && e.target !== id,
       ),
     });
+    setInspecting(false);
     setParams({});
   };
   const selectedNode = graph.nodes.find((n) => n.id === selected);
@@ -306,8 +350,6 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
     <>
       <Head
         title={draft.name}
-        description={`${t.pipelines.saved} v${baseVersion}`}
-        eyebrow="PIPELINES / 06"
         actions={
           <>
             <Action action="flow-list" onPress={() => navigate("/pipelines")}>
@@ -342,32 +384,9 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
       />
       <div className="testflow-pipeline-bar">
         <div className="testflow-row">
-          <Action
-            size="sm"
-            onPress={() => {
-              setMetadata({
-                name: draft.name,
-                description: draft.description || "",
-              });
-              setSettings(true);
-            }}
-          >
-            {t.pipelines.settings}
-          </Action>
           <Badge state={dirty ? "pending" : "ready"}>
-            {dirty ? t.pipelines.draft : t.pipelines.saved}
+            {dirty ? t.pipelines.draft : `${t.pipelines.saved} v${baseVersion}`}
           </Badge>
-          <Action
-            size="sm"
-            action="flow-schema"
-            onPress={() => {
-              setSchemaMode("flow");
-              setSchemaInput(draft.input_schema);
-              setSchemaOutput(draft.output_schema);
-            }}
-          >
-            {t.pipelines.schemaEdit}
-          </Action>
           <Action
             size="sm"
             action="revert-flow"
@@ -382,12 +401,16 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
           <Action
             size="sm"
             action="export-flow"
+            isPending={exporting.isPending}
             onPress={() =>
-              download(`${draft.name}.json`, { version: baseVersion, ...draft })
+              exporting.mutate(undefined, {
+                onSuccess: (document) =>
+                  download(`${draft.name}.workflow.json`, document),
+              })
             }
           >
             <Download />
-            {t.common.export}
+            {t.pipelines.exportWorkflow}
           </Action>
           <Action
             primary
@@ -401,9 +424,14 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
         </div>
       </div>
       <Failure
-        error={save.error || validation.error || requestedModule.error}
+        error={
+          save.error ||
+          validation.error ||
+          requestedModule.error ||
+          exporting.error
+        }
       />
-      {conflict && (
+      {conflict && !(inspecting && selectedNode) && (
         <DraftConflict
           kind="pipelines"
           id={resource.id}
@@ -433,74 +461,190 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
         </Notice>
       )}
       <div className="testflow-designer">
-        <aside className="testflow-palette">
-          <div className="testflow-palette-label">NODE LIBRARY</div>
-          <div className="testflow-palette-label">{t.pipelines.importedModules}</div>
-          {modules.data?.items.map((m) => (
-            <Action
-              size="sm"
-              action="add-node"
-              key={m.id}
-              onPress={() => addNode("module", m)}
-            >
-              <Boxes />
-              <span className="testflow-palette-name">{m.name}</span>
-            </Action>
-          ))}
-          <div className="testflow-palette-label">{t.pipelines.builtInNodes}</div>
-          {(["end", "assembly", "conversion"] as const).map((kind) => (
-            <Action
-              key={kind}
-              action="add-node"
-              size="sm"
-              onPress={() => addNode(kind)}
-            >
-              <span className="testflow-palette-name">{t.pipelines[kind]}</span>
-            </Action>
-          ))}
-          <Notice>{t.pipelines.singlePredecessorRule}</Notice>
-        </aside>
         <Canvas
           value={graph}
           onChange={setDraft}
           selected={selected}
-          onSelect={(node) => setParams(node ? { node } : {})}
+          onSelect={(node) => {
+            setParams(node ? { node } : {});
+            if (!node) setInspecting(false);
+          }}
+          onInspect={(node) => {
+            setParams({ node });
+            setLibrary(false);
+            setInspecting(true);
+          }}
           onRemoveEdge={(source, target) => setRemoveEdge({ source, target })}
-          onDelete={deleteNode}
+          onDelete={() => deleteNode()}
+          onRemoveNode={deleteNode}
           onSave={saveNow}
-        />
-        <Inspector
-          node={selectedNode}
-          graph={graph}
-          module={selected ? nodeModules[selected] : undefined}
-          onChange={patchNode}
-          onRemove={deleteNode}
-          onDisconnect={() =>
-            setDraft({
-              ...draft,
-              edges: draft.edges.filter((e) => e.target !== selected),
-            })
+          tools={
+            <>
+              <Action
+                size="sm"
+                action="flow-settings"
+                aria-label={t.pipelines.settings}
+                onPress={() => {
+                  setNodeSettings({});
+                  setNodeVersions({});
+                  setMetadata({
+                    name: draft.name,
+                    description: draft.description || "",
+                    preparation_timeout: draft.preparation_timeout ?? 60,
+                    cleanup_timeout: draft.cleanup_timeout ?? 10,
+                  });
+                  setSettings(true);
+                }}
+              >
+                <Settings2 />
+                {t.pipelines.settings}
+              </Action>
+              <Action
+                size="sm"
+                isIconOnly
+                action="toggle-node-library"
+                aria-label={t.pipelines.addNode}
+                aria-expanded={library}
+                aria-controls="testflow-node-library"
+                onPress={() => setLibrary(!library)}
+              >
+                <Plus />
+              </Action>
+            </>
           }
-          onSchema={openSchema}
-          onRemoveEdge={(source,target)=>setRemoveEdge({source,target})}
+          library={
+            library ? (
+              <aside
+                id="testflow-node-library"
+                className="testflow-palette"
+                aria-label={t.pipelines.palette}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    event.stopPropagation();
+                    closeLibrary();
+                  }
+                }}
+              >
+                <div className="testflow-row testflow-between">
+                  <h3>{t.pipelines.palette}</h3>
+                  <Action
+                    size="sm"
+                    isIconOnly
+                    variant="ghost"
+                    aria-label={t.pipelines.closeLibrary}
+                    onPress={closeLibrary}
+                  >
+                    <X />
+                  </Action>
+                </div>
+                <Text
+                  label={t.pipelines.searchModules}
+                  value={moduleSearch}
+                  onChange={setModuleSearch}
+                />
+                <div className="testflow-palette-label">
+                  {t.pipelines.importedModules}
+                </div>
+                <Failure error={modules.error} />
+                {modules.data?.items
+                  .filter((m) =>
+                    m.name
+                      .toLocaleLowerCase()
+                      .includes(moduleSearch.toLocaleLowerCase()),
+                  )
+                  .map((m) => (
+                    <Action
+                      size="sm"
+                      action="add-node"
+                      key={m.id}
+                      onPress={() => addNode("module", m)}
+                    >
+                      <Boxes />
+                      <span className="testflow-palette-name">{m.name}</span>
+                    </Action>
+                  ))}
+                {modules.data &&
+                  !modules.data.items.some((m) =>
+                    m.name
+                      .toLocaleLowerCase()
+                      .includes(moduleSearch.toLocaleLowerCase()),
+                  ) && (
+                    <p className="testflow-small testflow-muted">
+                      {t.common.emptySearch}
+                    </p>
+                  )}
+                <div className="testflow-palette-label">
+                  {t.pipelines.builtInNodes}
+                </div>
+                {(["end", "assembly", "conversion"] as const).map((kind) => (
+                  <Action
+                    key={kind}
+                    action="add-node"
+                    size="sm"
+                    onPress={() => addNode(kind)}
+                  >
+                    <span className="testflow-palette-name">
+                      {t.pipelines[kind]}
+                    </span>
+                  </Action>
+                ))}
+              </aside>
+            ) : undefined
+          }
         />
       </div>
-      <div className="testflow-form-row testflow-mt">
-        <Text
-          label={t.pipelines.prepareTimeout}
-          type="number"
-          value={draft.preparation_timeout ?? 60}
-          onChange={(v) =>
-            setDraft({ ...draft, preparation_timeout: Number(v) })
+      {inspecting && selectedNode && (
+        <Dialog
+          drawer
+          className="testflow-node-drawer"
+          title={selectedNode.name}
+          onClose={() => setInspecting(false)}
+          footer={
+            <Action onPress={() => setInspecting(false)}>
+              {t.common.close}
+            </Action>
           }
-        />
-        <Text
-          label={t.pipelines.cleanupTimeout}
-          type="number"
-          value={draft.cleanup_timeout ?? 10}
-          onChange={(v) => setDraft({ ...draft, cleanup_timeout: Number(v) })}
-        />
-      </div>
+        >
+          <Failure error={save.error} />
+          {conflict && (
+            <DraftConflict
+              kind="pipelines"
+              id={resource.id}
+              draft={draft}
+              onContinue={(latest) => {
+                setBaseVersion(latest.version);
+                setSaved(latest.data);
+                save.reset();
+              }}
+            />
+          )}
+          <Inspector
+            node={selectedNode}
+            graph={graph}
+            module={selected ? nodeModules[selected] : undefined}
+            onChange={patchNode}
+            onSchema={openSchema}
+            onContractChange={(kind, schema) =>
+              setDraft({
+                ...draft,
+                ...(kind === "start"
+                  ? { input_schema: schema }
+                  : { output_schema: schema }),
+                nodes: draft.nodes.map((n) =>
+                  n.kind === kind
+                    ? {
+                        ...n,
+                        ...(kind === "start"
+                          ? { output_schema: schema }
+                          : { input_schema: schema, output_schema: schema }),
+                      }
+                    : n,
+                ),
+              })
+            }
+          />
+        </Dialog>
+      )}
       {schemaMode && (
         <Dialog
           title={t.pipelines.schemaEdit}
@@ -587,9 +731,9 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
               </Action>
               <Action
                 primary
-                isDisabled={!metadata.name.trim()}
+                isDisabled={!metadata.name.trim() || !settingsValid}
                 onPress={() => {
-                  setDraft({ ...draft, ...metadata });
+                  setDraft({ ...draft, ...metadata, nodes: draft.nodes.map(node => ({...node, ...nodeSettings[node.id]})) });
                   setSettings(false);
                 }}
               >
@@ -599,6 +743,9 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
           }
         >
           <div className="testflow-stack">
+            {!settingsValid && (
+              <Notice error>{t.pipelines.settingsInvalid}</Notice>
+            )}
             <Text
               label={t.common.name}
               value={metadata.name}
@@ -613,6 +760,43 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
               }
               multiline
             />
+            <div className="testflow-form-row">
+              <Text
+                label={t.pipelines.prepareTimeout}
+                type="number"
+                value={metadata.preparation_timeout}
+                onChange={(value) =>
+                  setMetadata({
+                    ...metadata,
+                    preparation_timeout: Number(value),
+                  })
+                }
+              />
+              <Text
+                label={t.pipelines.cleanupTimeout}
+                type="number"
+                value={metadata.cleanup_timeout}
+                onChange={(value) =>
+                  setMetadata({ ...metadata, cleanup_timeout: Number(value) })
+                }
+              />
+            </div>
+            <details className="testflow-node-platform-settings">
+              <summary>{t.pipelines.nodeSettings}</summary>
+              {graph.nodes.map(node => <div key={node.id} className="testflow-stack testflow-node-setting">
+                <strong>{node.name}</strong>
+                <Text label={`${node.name} · ${t.pipelines.nodeTimeout}`} type="number"
+                  value={nodeSettings[node.id]?.timeout ?? node.timeout ?? 30}
+                  onChange={value => setNodeSettings({...nodeSettings, [node.id]: {...nodeSettings[node.id], timeout: Number(value)}})} />
+                {node.kind === "module" && (nodeVersions[node.id] || nodeModules[node.id]) &&
+                  <ModuleVersion module={nodeVersions[node.id] || nodeModules[node.id]!} onSelect={pinned => {
+                    setNodeVersions({...nodeVersions, [node.id]: pinned});
+                    setNodeSettings({...nodeSettings, [node.id]: {...nodeSettings[node.id], module_version: pinned.selected_version,
+                      input_schema: pinned.data.inputs, output_schema: pinned.data.outputs, runtime: structuredClone(moduleRuntime(pinned.data)),
+                      parameters: structuredClone(pinned.data.manifest.defaults || {})}});
+                  }} />}
+              </div>)}
+            </details>
           </div>
         </Dialog>
       )}
@@ -625,7 +809,7 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
               <Action onPress={() => setRemoveEdge(undefined)}>
                 {t.common.cancel}
               </Action>
-              <Action
+              <DeleteAction
                 danger
                 action="confirm-edge-delete"
                 onPress={() => {
@@ -641,7 +825,7 @@ function Designer({ resource }: { resource: Resource<Pipeline> }) {
                 }}
               >
                 {t.common.remove}
-              </Action>
+              </DeleteAction>
             </>
           }
         >
@@ -687,23 +871,65 @@ export function PipelinesPage() {
   const list = useListState();
   const query = useResources<Pipeline>("pipelines", list.query);
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [name, setName] = useState("");
   const [startName, setStartName] = useState(t.pipelines.start);
   const [inputPreset, setInputPreset] = useState("plain");
   const [outputPreset, setOutputPreset] = useState("same");
-  const presets:Record<string,Schema> = {
-    plain:textSchema,
-    text:{fields:[{name:"transcript",type:"Text",format:"UTF-8",stream:false}]},
-    audio:{fields:[{name:"audio",type:"Audio",format:"WAV · 16kHz · Mono",stream:false}]},
-    multi:{fields:[{name:"audio",type:"Audio",format:"WAV · 16kHz · Mono",stream:false},{name:"image",type:"Image",format:"Image/*",stream:false}]},
-    reply:{fields:[{name:"reply",type:"Text",format:"UTF-8",stream:false}]},
-    answer:{fields:[{name:"reply",type:"Text",format:"UTF-8",stream:true},{name:"speech",type:"Audio",format:"WAV · 16kHz · Mono",stream:true}]},
+  const presets: Record<string, Schema> = {
+    plain: textSchema,
+    text: {
+      fields: [
+        { name: "transcript", type: "Text", format: "UTF-8", stream: false },
+      ],
+    },
+    audio: {
+      fields: [
+        {
+          name: "audio",
+          type: "Audio",
+          format: "WAV · 16kHz · Mono",
+          stream: false,
+        },
+      ],
+    },
+    multi: {
+      fields: [
+        {
+          name: "audio",
+          type: "Audio",
+          format: "WAV · 16kHz · Mono",
+          stream: false,
+        },
+        { name: "image", type: "Image", format: "Image/*", stream: false },
+      ],
+    },
+    reply: {
+      fields: [{ name: "reply", type: "Text", format: "UTF-8", stream: false }],
+    },
+    answer: {
+      fields: [
+        { name: "reply", type: "Text", format: "UTF-8", stream: true },
+        {
+          name: "speech",
+          type: "Audio",
+          format: "WAV · 16kHz · Mono",
+          stream: true,
+        },
+      ],
+    },
   };
   const [versions, setVersions] = useState<Resource<Pipeline>>();
   const create = useWrite(() =>
     write<Resource<Pipeline>>(
       "/pipelines",
-      newPipeline(name, startName, t.pipelines.end, presets[inputPreset], outputPreset==="same"?presets[inputPreset]:presets[outputPreset]),
+      newPipeline(
+        name,
+        startName,
+        t.pipelines.end,
+        presets[inputPreset],
+        outputPreset === "same" ? presets[inputPreset] : presets[outputPreset],
+      ),
     ),
   );
   if (selected.data)
@@ -722,16 +948,28 @@ export function PipelinesPage() {
     <>
       <Head
         title={t.pipelines.collection}
-        description={t.pipelines.collectionDescription}
-        eyebrow="PIPELINES / 06"
         actions={
-          <Action primary action="new-flow" onPress={() => setCreating(true)}>
-            <Plus />
-            {t.pipelines.add}
-          </Action>
+          <div className="testflow-row">
+            <Action action="import-flow" onPress={() => setImporting(true)}>
+              <Upload />
+              {t.pipelines.importWorkflow}
+            </Action>
+            <Action primary action="new-flow" onPress={() => setCreating(true)}>
+              <Plus />
+              {t.pipelines.add}
+            </Action>
+          </div>
         }
       />
       <Failure error={query.error || selected.error} />
+      <ImportWorkflow
+        open={importing}
+        onClose={() => setImporting(false)}
+        onImported={(resource) => {
+          setImporting(false);
+          navigate(`/pipelines/${resource.id}`);
+        }}
+      />
       {params.get("module") && (
         <Notice>
           <div className="testflow-row testflow-between">
@@ -758,25 +996,33 @@ export function PipelinesPage() {
       )}
       <div className="testflow-grid-2">
         {query.data?.items.map((p) => (
-          <ResourceCard className="testflow-pipeline-card" key={p.id} icon={<FlowIcon />} title={p.name} version={p.version} onVersion={() => setVersions(p)}
-            summary={`${p.data.nodes.length} ${t.pipelines.nodes} · ${p.data.nodes.filter(n=>n.kind==="end").length} ${t.pipelines.outlets}${p.data.nodes.some(n=>n.runtime?.requires_sequential) ? " · "+t.pipelines.sequentialNote : ""}`}
-            actions={<>
-              <Hide kind="pipelines" resource={p} iconOnly />
-              <div className="testflow-row">
-                <Action
-                  size="sm"
-                  action="open-flow"
-                  onPress={() =>
-                    navigate(
-                      `/pipelines/${p.id}${params.get("module") ? "?" + new URLSearchParams({ module: params.get("module")!, ...(params.get("module_version") ? { module_version: params.get("module_version")! } : {}) }).toString() : ""}`,
-                    )
-                  }
-                >
-                  {t.pipelines.openCanvas}
-                  <ArrowRight />
-                </Action>
-              </div>
-            </>}
+          <ResourceCard
+            className="testflow-pipeline-card"
+            key={p.id}
+            icon={<FlowIcon />}
+            title={p.name}
+            version={p.version}
+            onVersion={() => setVersions(p)}
+            summary={`${p.data.nodes.length} ${t.pipelines.nodes} · ${p.data.nodes.filter((n) => n.kind === "end").length} ${t.pipelines.outlets}${p.data.nodes.some((n) => n.runtime?.requires_sequential) ? " · " + t.pipelines.sequentialNote : ""}`}
+            actions={
+              <>
+                <DeleteResource kind="pipelines" resource={p} />
+                <div className="testflow-row">
+                  <Action
+                    size="sm"
+                    action="open-flow"
+                    onPress={() =>
+                      navigate(
+                        `/pipelines/${p.id}${params.get("module") ? "?" + new URLSearchParams({ module: params.get("module")!, ...(params.get("module_version") ? { module_version: params.get("module_version")! } : {}) }).toString() : ""}`,
+                      )
+                    }
+                  >
+                    {t.pipelines.openCanvas}
+                    <ArrowRight />
+                  </Action>
+                </div>
+              </>
+            }
           >
             <div className="testflow-row testflow-wrap testflow-mt">
               <Chips schema={p.data.input_schema} />
@@ -795,10 +1041,15 @@ export function PipelinesPage() {
       {creating && (
         <Dialog
           title={t.pipelines.add}
-          onClose={() => {if (!create.isPending) setCreating(false);}}
+          onClose={() => {
+            if (!create.isPending) setCreating(false);
+          }}
           footer={
             <>
-              <Action isDisabled={create.isPending} onPress={() => setCreating(false)}>
+              <Action
+                isDisabled={create.isPending}
+                onPress={() => setCreating(false)}
+              >
                 {t.common.cancel}
               </Action>
               <Action
@@ -826,16 +1077,37 @@ export function PipelinesPage() {
           }
         >
           <div className="testflow-stack">
-          <Text label={t.common.name} value={name} onChange={setName} />
-          <Text label={t.pipelines.startName} value={startName} onChange={setStartName} />
-          <div className="testflow-grid-2">
-            <Choice label={t.pipelines.initialInput} value={inputPreset} onChange={setInputPreset}
-              options={[{id:"plain",name:"text / Text"},{id:"audio",name:"audio / Audio"},{id:"multi",name:"audio + image"},{id:"text",name:"transcript / Text"}]} />
-            <Choice label={t.pipelines.unifiedOutput} value={outputPreset} onChange={setOutputPreset}
-              options={[{id:"same",name:t.pipelines.sameAsInput},{id:"answer",name:t.pipelines.replyAndSpeech},{id:"reply",name:"reply / Text"}]} />
-          </div>
-          <Notice>{t.pipelines.initialContractHint}</Notice>
-          <Failure error={create.error} />
+            <Text label={t.common.name} value={name} onChange={setName} />
+            <Text
+              label={t.pipelines.startName}
+              value={startName}
+              onChange={setStartName}
+            />
+            <div className="testflow-grid-2">
+              <Choice
+                label={t.pipelines.initialInput}
+                value={inputPreset}
+                onChange={setInputPreset}
+                options={[
+                  { id: "plain", name: "text / Text" },
+                  { id: "audio", name: "audio / Audio" },
+                  { id: "multi", name: "audio + image" },
+                  { id: "text", name: "transcript / Text" },
+                ]}
+              />
+              <Choice
+                label={t.pipelines.unifiedOutput}
+                value={outputPreset}
+                onChange={setOutputPreset}
+                options={[
+                  { id: "same", name: t.pipelines.sameAsInput },
+                  { id: "answer", name: t.pipelines.replyAndSpeech },
+                  { id: "reply", name: "reply / Text" },
+                ]}
+              />
+            </div>
+            <Notice>{t.pipelines.initialContractHint}</Notice>
+            <Failure error={create.error} />
           </div>
         </Dialog>
       )}{" "}

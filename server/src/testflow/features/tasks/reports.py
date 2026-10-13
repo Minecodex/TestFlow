@@ -24,7 +24,10 @@ async def current_report(db, task_id):
                      "execution_id": chosen.id if chosen else None, "execution_state": chosen.state if chosen else item.state,
                      "active_execution_id": active.id if active else None, "evaluation_id": evaluation.id if evaluation else None,
                      "verdict": evaluation.result.get("verdict", "error") if evaluation else "unscored", "evaluation": evaluation.result if evaluation else None,
-                     "duration_ms": chosen.duration_ms if chosen else None, "cleanup": chosen.cleanup if chosen else "pending"})
+                     "duration_ms": chosen.duration_ms if chosen else None, "cleanup": chosen.cleanup if chosen else "pending",
+                     "materials": {"input_schema": item.snapshot["pipeline"]["graph"]["input_schema"], "inputs": item.snapshot["inputs"],
+                                   "output_schema": item.snapshot["pipeline"]["graph"]["output_schema"], "output": chosen.output if chosen else {},
+                                   "reference": item.snapshot["reference"], "reference_confirmed": item.snapshot["reference_confirmed"]}})
     dimensions = [dimension for row, item in zip(rows, items)
                   for dimension in complete_dimensions(item.snapshot["profile"], row["evaluation"])]
     return {"task_id": task_id, "task_name": task.name, "state": task.state, "plan_count": len(items), "rows": rows,

@@ -6,7 +6,6 @@ const paths = {
   "lock": "<rect x=\"5\" y=\"10\" width=\"14\" height=\"11\" rx=\"2\"/><path d=\"M8 10V6a4 4 0 0 1 8 0v4\"/>",
   "merge": "<path d=\"M3 4h4c7 0 3 8 10 8h4M3 20h4c7 0 3-8 10-8m0-4 4 4-4 4\"/>",
   "play": "<path d=\"m8 4 12 8-12 8V4Z\"/>",
-  "hide": "<path d=\"m3 3 18 18M4 7c-2 2-2 5-2 5s3 7 10 7c3 0 5-1 7-3M9 5h3c7 0 10 7 10 7l-2 3\"/>",
   "grid": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1.5\"/>",
   "repo": "<path d=\"M4 19.5V4a1 1 0 0 1 1-1h14v18H5a2 2 0 0 1 0-4h14\"/><path d=\"M8 7h7M8 10h5\"/>",
   "box": "<path d=\"m12 3 9 5v9l-9 5-9-5V8l9-5Z\"/><path d=\"m3 8 9 5 9-5M12 13v9M7.5 5.5l9 5\"/>",
@@ -35,7 +34,6 @@ export const CodeIcon = makeIcon("code");
 export const LockIcon = makeIcon("lock");
 export const MergeIcon = makeIcon("merge");
 export const PlayIcon = makeIcon("play");
-export const HideIcon = makeIcon("hide");
 export const GridIcon = makeIcon("grid");
 export const BoxIcon = makeIcon("box");
 export const AudioIcon = makeIcon("audio");

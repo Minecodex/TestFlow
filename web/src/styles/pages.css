@@ -89,10 +89,8 @@
 }
 .testflow-designer {
   display: grid;
-  grid-template-columns: var(--testflow-px-174) minmax(0, 1fr) var(
-      --testflow-px-268
-    );
-  height: var(--testflow-px-620);
+  grid-template-columns: minmax(0, 1fr);
+  height: max(var(--testflow-canvas-min-height), calc(100vh - var(--testflow-px-260)));
   border: 1px solid var(--testflow-line);
   border-radius: var(--testflow-px-11);
   overflow: hidden;
@@ -100,7 +98,6 @@
 }
 .testflow-palette {
   padding: var(--testflow-px-17) var(--testflow-px-12);
-  border-right: 1px solid var(--testflow-line);
   overflow: auto;
 }
 .testflow-palette .testflow-btn {

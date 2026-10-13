@@ -10,7 +10,7 @@ import {
   TextArea,
   TextField,
 } from "@heroui/react";
-import { AlertCircle, ArrowUp, Box, Plus, Trash2, X } from "lucide-react";
+import { AlertCircle, ArrowUp, Box, Pencil, Plus, Trash2, X } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -72,6 +72,7 @@ export function Text({
   disabled,
   name,
   placeholder,
+  onKeyDown,
 }: {
   label: string;
   value: string | number;
@@ -83,6 +84,7 @@ export function Text({
   disabled?: boolean;
   name?: string;
   placeholder?: string;
+  onKeyDown?: ComponentProps<typeof Input>["onKeyDown"];
 }) {
   return (
     <TextField
@@ -96,13 +98,24 @@ export function Text({
     >
       <Label>{label}</Label>
       {multiline ? (
-        <TextArea className="testflow-input testflow-textarea" placeholder={placeholder} />
+        <TextArea
+          className="testflow-input testflow-textarea"
+          placeholder={placeholder}
+        />
       ) : (
-        <Input className="testflow-input" placeholder={placeholder} />
+        <Input className="testflow-input" placeholder={placeholder} onKeyDown={onKeyDown} />
       )}
       {hint && <span className="testflow-hint">{hint}</span>}
     </TextField>
   );
+}
+export function EditAction({ children, className, ...props }: Omit<ComponentProps<typeof Action>, "children"> & {children?: ReactNode}) {
+  const t = useMessages();
+  return <Action {...props} size="sm" variant="outline" isIconOnly={false} className={`testflow-resource-action testflow-edit-action ${className || ""}`}><Pencil />{children || t.common.edit}</Action>;
+}
+export function DeleteAction({ children, className, ...props }: Omit<ComponentProps<typeof Action>, "children"> & {children?: ReactNode}) {
+  const t = useMessages();
+  return <Action {...props} size="sm" variant="outline" danger={false} isIconOnly={false} className={`testflow-resource-action testflow-delete-action ${className || ""}`}><Trash2 />{children || t.common.delete}</Action>;
 }
 export function Choice({
   label,
@@ -122,7 +135,7 @@ export function Choice({
   const t = useMessages();
   return (
     <Select
-      className={`testflow-field ${className}`}
+      className={`testflow-field testflow-select ${className}`}
       aria-label={label}
       selectedKey={value || null}
       placeholder={t.common.select}
@@ -130,14 +143,19 @@ export function Choice({
       isDisabled={disabled}
     >
       <Label>{label}</Label>
-      <Select.Trigger className="testflow-input">
+      <Select.Trigger className="testflow-input testflow-select-trigger">
         <Select.Value />
         <Select.Indicator />
       </Select.Trigger>
-      <Select.Popover>
+      <Select.Popover className="testflow-select-popover">
         <ListBox>
           {options.map((o) => (
-            <ListBox.Item key={o.id} id={o.id} textValue={o.name}>
+            <ListBox.Item
+              className="testflow-select-option"
+              key={o.id}
+              id={o.id}
+              textValue={o.name}
+            >
               {o.name}
               <ListBox.ItemIndicator />
             </ListBox.Item>
@@ -159,7 +177,12 @@ export function Check({
   disabled?: boolean;
 }) {
   return (
-    <Checkbox className="testflow-checkbox" isSelected={value} onChange={onChange} isDisabled={disabled}>
+    <Checkbox
+      className="testflow-checkbox"
+      isSelected={value}
+      onChange={onChange}
+      isDisabled={disabled}
+    >
       <Checkbox.Content>
         <Checkbox.Control>
           <Checkbox.Indicator />
@@ -176,6 +199,7 @@ export function Dialog({
   onClose,
   wide = false,
   drawer = false,
+  className = "",
 }: {
   title: string;
   children: ReactNode;
@@ -183,6 +207,7 @@ export function Dialog({
   onClose: () => void;
   wide?: boolean;
   drawer?: boolean;
+  className?: string;
 }) {
   const t = useMessages();
   const submitting = useIsMutating() > 0;
@@ -213,7 +238,9 @@ export function Dialog({
           size={wide ? "lg" : "md"}
           placement="center"
         >
-          <Modal.Dialog className={`testflow-dialog ${wide ? "testflow-dialog-wide" : ""} ${drawer ? "testflow-drawer" : ""}`}>
+          <Modal.Dialog
+            className={`testflow-dialog ${wide ? "testflow-dialog-wide" : ""} ${drawer ? "testflow-drawer" : ""} ${className}`}
+          >
             <Modal.Header className="testflow-dialog-header">
               <Modal.Heading>{title}</Modal.Heading>
               <Action
@@ -288,21 +315,18 @@ export function Failure({ error }: { error: unknown }) {
 }
 export function Head({
   title,
-  description,
   actions,
-  eyebrow,
+  meta,
 }: {
   title: string;
-  description?: string;
   actions?: ReactNode;
-  eyebrow?: string;
+  meta?: ReactNode;
 }) {
   return (
     <header className="testflow-page-heading">
-      <div>
-        {eyebrow && <div className="testflow-eyebrow">{eyebrow}</div>}
+      <div className="testflow-heading-title">
         <h1>{title}</h1>
-        {description && <p>{description}</p>}
+        {meta && <span className="testflow-heading-meta">{meta}</span>}
       </div>
       <div className="testflow-row">{actions}</div>
     </header>
@@ -367,11 +391,16 @@ export function Status({ value, label }: { value: string; label?: string }) {
   );
 }
 export function Chips({ schema }: { schema?: Schema | null }) {
+  const t = useMessages();
   return (
     <div className="testflow-chips">
       {schema?.fields.map((f) => (
         <span className={`testflow-chip testflow-type-${f.type}`} key={f.name}>
-          {f.name} <span className="testflow-tiny">{f.type}{f.stream ? " ~" : ""}</span>
+          {f.name}{" "}
+          <span className="testflow-tiny">
+            {t.common.types[f.type]}
+            {f.stream ? " ~" : ""}
+          </span>
         </span>
       ))}
     </div>
@@ -450,7 +479,7 @@ export function SchemaEditor({
           <Choice
             label={t.common.fieldType}
             value={f.type}
-            options={Object.keys(formats).map((id) => ({ id, name: id }))}
+            options={Object.keys(formats).map((id) => ({ id, name: t.common.types[id as keyof typeof t.common.types] }))}
             onChange={(type) =>
               patch(i, {
                 type: type as PortField["type"],
@@ -486,16 +515,16 @@ export function SchemaEditor({
           >
             <ArrowUp />
           </Action>
-          <Action
-            isIconOnly
+          <DeleteAction
+            size="sm"
             aria-label={t.common.removeField}
             onPress={() =>
               onChange({ fields: value.fields.filter((_, n) => n !== i) })
             }
             action="schema-remove"
           >
-            <Trash2 />
-          </Action>
+            {t.common.delete}
+          </DeleteAction>
         </div>
       ))}
       <Action

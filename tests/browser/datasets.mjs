@@ -235,7 +235,7 @@ export async function datasetsControls(env) {
         .getByRole("textbox", { name: "案例名称", exact: true })
         .fill("temporary removable member");
       await button("保存", dialog()).click();
-      await button("移除", dialog()).last().click();
+      await button("删除", dialog()).last().click();
       await expect(
         dialog().getByText("temporary removable member", { exact: true }),
       ).toHaveCount(0);
@@ -402,7 +402,7 @@ export async function datasetsControls(env) {
     "A failed case removal retains the row and all server members",
     async () => {
       await ui.failOnce("**/api/v1/datasets/" + state.dataset.id, "PUT");
-      await button("移除", direct).click();
+      await button("删除", direct).click();
       await expect(
         page.getByRole("alert").filter({ hasText: "服务暂时不可用，请重试。" }),
       ).toBeVisible();
@@ -419,7 +419,7 @@ export async function datasetsControls(env) {
     "Successful removal keeps the removed case in the previous immutable version",
     async () => {
       const previous = state.dataset.version;
-      await button("移除", direct).click();
+      await button("删除", direct).click();
       await expect(direct).toHaveCount(0);
       state.dataset = await api("get", "/datasets/" + state.dataset.id);
       expect(state.dataset.data.cases).toHaveLength(2);

@@ -15,7 +15,7 @@ export async function evaluationControls(env) {
       await dialog()
         .getByRole("textbox", { name: "名称", exact: true })
         .fill(names.profile);
-      await button("移除", dialog()).click();
+      await button("删除", dialog()).click();
       await expect(button("保存", dialog())).toBeDisabled();
       await button("取消", dialog()).click();
       return { empty_name_blocked: true, no_dimensions_blocked: true };
@@ -50,10 +50,8 @@ export async function evaluationControls(env) {
     "normal",
     "Selecting a profile pins the detail panel and URL to its identity",
     async () => {
-      await button(names.profile, card).click();
-      expect(new URL(page.url()).searchParams.get("view")).toBe(
-        state.profile.id,
-      );
+      await card.getByRole("link").click();
+      expect(new URL(page.url()).pathname).toBe("/evaluation-profiles/" + state.profile.id);
       await expect(
         page.getByRole("row").filter({ hasText: "完成状态" }),
       ).toBeVisible();
@@ -65,19 +63,14 @@ export async function evaluationControls(env) {
     "negative",
     "A profile-list read failure displays an error and preserves the selected profile through retry",
     async () => {
-      const failure = await ui.failReads("**/api/v1/evaluation-profiles?*");
-      await button("刷新", page.getByRole("banner")).click();
-      await expect(
-        page.getByRole("alert").filter({ hasText: "服务暂时不可用，请重试。" }),
-      ).toBeVisible();
-      expect(new URL(page.url()).searchParams.get("view")).toBe(
-        state.profile.id,
-      );
+      const failure = await ui.failReads("**/api/v1/evaluation-profiles/" + state.profile.id);
+      await page.reload();
+      await expect(page.getByRole("alert")).toBeVisible();
+      expect(new URL(page.url()).pathname).toBe("/evaluation-profiles/" + state.profile.id);
       await failure.restore();
-      await button("刷新", page.getByRole("banner")).click();
-      await expect(
-        page.getByRole("alert").filter({ hasText: "服务暂时不可用，请重试。" }),
-      ).toHaveCount(0);
+      await button("重试").click();
+      await expect(dialog().getByRole("row").filter({hasText:"完成状态"})).toBeVisible();
+      await dialog().press("Escape");
       return { selected_profile_retained: true, retry_succeeded: true };
     },
   );
@@ -86,7 +79,7 @@ export async function evaluationControls(env) {
     "negative",
     "A CER threshold below zero is rejected while the entered value and explicit binding remain",
     async () => {
-      await button("编辑").click();
+      await button("编辑", card).click();
       await button("新增维度", dialog()).click();
       await dialog()
         .getByRole("textbox", { name: "维度名称", exact: true })
@@ -165,7 +158,7 @@ export async function evaluationControls(env) {
     "normal",
     "Dimension additions and removals retain the other entered values",
     async () => {
-      await button("编辑").click();
+      await button("编辑", card).click();
       const before = await dialog()
         .getByRole("textbox", { name: "维度名称", exact: true })
         .count();
@@ -173,7 +166,7 @@ export async function evaluationControls(env) {
       await expect(
         dialog().getByRole("textbox", { name: "维度名称", exact: true }),
       ).toHaveCount(before + 1);
-      await button("移除", dialog()).last().click();
+      await button("删除", dialog()).last().click();
       await expect(
         dialog().getByRole("textbox", { name: "维度名称", exact: true }),
       ).toHaveCount(before);
@@ -210,7 +203,7 @@ export async function tasksControls(env) {
     "boundary",
     "The last required pair cannot be removed",
     async () => {
-      await expect(button("移除", dialog()).first()).toBeDisabled();
+      await expect(button("删除", dialog()).first()).toBeDisabled();
       return { last_pair_protected: true };
     },
   );
@@ -220,7 +213,7 @@ export async function tasksControls(env) {
     "Adding a pair leaves existing explicit selections intact",
     async () => {
       await button("新增配对", dialog()).click();
-      await expect(button("移除", dialog())).toHaveCount(2);
+      await expect(button("删除", dialog())).toHaveCount(2);
       await expect(dialog()).toContainText(names.dataset);
       await expect(dialog()).toContainText(names.pipeline);
       return { pairs: 2, original_selections_retained: true };
@@ -243,8 +236,8 @@ export async function tasksControls(env) {
     "normal",
     "Removing the second pair restores a one-pair task with the selected versions",
     async () => {
-      await button("移除", dialog()).last().click();
-      await expect(button("移除", dialog())).toHaveCount(1);
+      await button("删除", dialog()).last().click();
+      await expect(button("删除", dialog())).toHaveCount(1);
       await expect(dialog()).toContainText(names.pipeline);
       return { pairs: 1 };
     },
@@ -389,8 +382,8 @@ export async function tasksControls(env) {
     "A hidden task keeps its name in history and still returns to its fixed report",
     async () => {
       await button("返回", page.locator(".testflow-page-heading")).click();
-      await button("隐藏 " + names.task).click();
-      await button("确认隐藏", dialog()).click();
+      await button("删除 " + names.task).click();
+      await button("确认删除", dialog()).click();
       await button("查看执行历史").click();
       await expect(button(names.task + " 测试任务 测试任务")).toBeVisible();
       await button("返回", page.locator(".testflow-page-heading")).click();

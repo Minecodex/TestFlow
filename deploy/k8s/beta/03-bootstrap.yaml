@@ -1,0 +1,54 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: testflow-bootstrap-v0-0-1-beta
+  namespace: testflow
+spec:
+  backoffLimit: 6
+  template:
+    metadata:
+      labels:
+        app: testflow-bootstrap
+    spec:
+      serviceAccountName: testflow-bootstrap
+      restartPolicy: OnFailure
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: bootstrap
+        image: kakj/testflow-server:v0.0.1-beta
+        imagePullPolicy: IfNotPresent
+        command:
+        - python
+        - /bootstrap/bootstrap.py
+        - bootstrap
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 25m
+            memory: 32Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
+        volumeMounts:
+        - name: bootstrap
+          mountPath: /bootstrap
+          readOnly: true
+        env:
+        - name: TESTFLOW_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+      volumes:
+      - name: bootstrap
+        configMap:
+          name: testflow-bootstrap-code

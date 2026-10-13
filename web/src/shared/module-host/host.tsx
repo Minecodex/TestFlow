@@ -8,6 +8,7 @@ import type { Module, Resource } from "../api/types";
 import { getJson } from "../api/client";
 import { useMessages } from "../../i18n";
 import { parameterErrors } from "../schema/validation";
+import { BusinessCredentials } from "./credentials";
 interface PanelProps {
   value: Record<string, unknown>;
   onChange: (value: Record<string, unknown>) => void;
@@ -52,13 +53,14 @@ const cache = new Map<
   Promise<{ default: React.ComponentType<PanelProps>; sdk: string }>
 >();
 class Boundary extends React.Component<
-  { children: React.ReactNode; fallback: React.ReactNode },
+  { children: React.ReactNode; fallback: React.ReactNode; onFailure: () => void },
   { failed: boolean }
 > {
   state = { failed: false };
   static getDerivedStateFromError() {
     return { failed: true };
   }
+  componentDidCatch() { this.props.onFailure(); }
   render() {
     return this.state.failed ? this.props.fallback : this.props.children;
   }
@@ -111,10 +113,12 @@ export function ModulePanel({
   );
   const Component = component;
   const errors = parameterErrors(module.data.parameters, value);
+  if (module.data.parameters.type === "object" && module.data.parameters.additionalProperties === false &&
+      !Object.keys((module.data.parameters.properties || {}) as object).length) return <Notice>{t.modules.noParameters}</Notice>;
   const panel = failed ? (
     fallback
   ) : Component ? (
-    <Boundary key={module.revision_id + ":" + attempt} fallback={fallback}>
+    <Boundary key={module.revision_id + ":" + attempt} fallback={fallback} onFailure={() => setFailed(true)}>
       <Component
         value={value}
         onChange={(v) => {
@@ -136,6 +140,7 @@ export function ModulePanel({
   );
   return (
     <div className="testflow-stack">
+      {!readonly && !failed && Component && <BusinessCredentials schema={module.data.parameters} value={value} onChange={onChange} />}
       {errors.length > 0 && (
         <Notice error>
           {t.modules.parametersInvalid}

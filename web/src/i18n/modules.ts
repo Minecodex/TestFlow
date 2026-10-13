@@ -1,4 +1,11 @@
 export const modulesZh = {
+  businessParameters: "能力参数",
+  businessCredentials: "配置能力凭据",
+  noParameters: "此能力未定义需要配置的业务参数。",
+  runtimeConfiguration: "模块运行配置",
+  saveRuntime: "保存运行配置",
+  saveRuntimeFirst: "修改尚未保存。保存后验证可用性，新节点继承已保存版本。",
+  port: "服务端口",
   available: "个可用模块",
   cardSequential: "案例顺序",
   choosePipeline: "选择现有流程或新建流程，模块将加入画布草稿。",
@@ -33,6 +40,13 @@ export const modulesZh = {
   uiFailure: "配置组件加载失败；已保存参数保持原样。",
 };
 export const modulesEn = {
+  businessParameters: "Capability parameters",
+  businessCredentials: "Configure capability credentials",
+  noParameters: "This capability defines no configurable business parameters.",
+  runtimeConfiguration: "Module runtime configuration",
+  saveRuntime: "Save runtime configuration",
+  saveRuntimeFirst: "Unsaved changes. Save before validation. New nodes inherit the saved version.",
+  port: "Service port",
   available: "validated modules",
   cardSequential: "Sequential cases",
   choosePipeline:

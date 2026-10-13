@@ -27,7 +27,7 @@ class LoginBody(BaseModel):
     password: SecretStr
 
 
-async def require_admin(request: Request, db=Depends(session)):
+async def require_admin(request: Request, db=Depends(session, scope="function")):
     token = request.cookies.get(COOKIE, "")
     row = await db.get(Session, hashlib.sha256(token.encode()).hexdigest())
     if not row or row.expires.replace(tzinfo=UTC) < datetime.now(UTC):
@@ -36,7 +36,7 @@ async def require_admin(request: Request, db=Depends(session)):
 
 
 @router.post("/auth/login")
-async def login(body: LoginBody, request: Request, response: Response, db=Depends(session)):
+async def login(body: LoginBody, request: Request, response: Response, db=Depends(session, scope="function")):
     password_hash = request.app.state.settings.admin_password_hash
     valid = False
     if body.username == "admin" and password_hash:
@@ -59,7 +59,7 @@ async def auth_session(_=Depends(require_admin)):
 
 
 @router.post("/auth/logout")
-async def logout(request: Request, response: Response, db=Depends(session)):
+async def logout(request: Request, response: Response, db=Depends(session, scope="function")):
     key = hashlib.sha256(request.cookies.get(COOKIE, "").encode()).hexdigest()
     await db.execute(delete(Session).where(Session.id == key))
     response.delete_cookie(COOKIE)
@@ -80,12 +80,12 @@ def cipher(request: Request) -> Fernet:
 
 
 @router.get("/credentials", dependencies=[Depends(require_admin)], response_model=CredentialPageResponse)
-async def credentials(db=Depends(session)):
+async def credentials(db=Depends(session, scope="function")):
     return {"items": [serialize(r) for r in (await db.scalars(select(Credential).order_by(Credential.created.desc()))).all()]}
 
 
 @router.post("/credentials", dependencies=[Depends(require_admin)], response_model=CredentialResponse)
-async def create_credential(body: CredentialBody, request: Request, db=Depends(session)):
+async def create_credential(body: CredentialBody, request: Request, db=Depends(session, scope="function")):
     row = Credential(name=body.name, kind=body.kind, encrypted=cipher(request).encrypt(body.value.get_secret_value().encode()).decode())
     db.add(row)
     await db.flush()
