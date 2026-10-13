@@ -120,8 +120,12 @@ def test_public_evidence_excludes_private_access_traces_and_unrelated_runs(tmp_p
     unrelated.mkdir()
     (unrelated / 'result.json').write_text('unrelated')
     output = tmp_path / 'public'
+    stale = output / 'testflow-e2e-previous-run'
+    stale.mkdir(parents=True)
+    (stale / 'result.json').write_text('previous run')
     export_evidence(output, ['testflow-e2e-ci'])
     assert {str(path.relative_to(output)) for path in output.rglob('*') if path.is_file()} == {
         'testflow-e2e-ci/result.json', 'testflow-e2e-ci/trace.zip', 'testflow-e2e-ci/screen.png'}
     with pytest.raises(ValueError, match='owned'):
         export_evidence(output, ['testflow-e2e-../../private'])
+    assert (output / 'testflow-e2e-ci/result.json').exists()

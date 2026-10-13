@@ -105,14 +105,17 @@ def workspace(target, namespace):
 
 
 def export_evidence(destination, namespaces):
+    for namespace in namespaces:
+        if not namespace.startswith(('testflow-e2e-', 'testflow-restore-')) or '/' in namespace:
+            raise ValueError('Evidence must come from an owned disposable namespace')
+    if destination.exists():
+        shutil.rmtree(destination)
     destination.mkdir(parents=True, exist_ok=True)
     acceptance = ROOT / '.data/acceptance'
     reports = {'result.json', 'control-cases.json', 'trace.zip', 'cleanup.json', 'boundaries.json',
                'reliability.json', 'live-media.json', 'go-protocol.json', 'code-mount.json',
                'transaction-and-media.json', 'restore.json'}
     for namespace in namespaces:
-        if not namespace.startswith(('testflow-e2e-', 'testflow-restore-')) or '/' in namespace:
-            raise ValueError('Evidence must come from an owned disposable namespace')
         for path in (acceptance / namespace).rglob('*'):
             if path.is_file() and (path.name in reports or path.suffix == '.png'):
                 output = destination / path.relative_to(acceptance)
