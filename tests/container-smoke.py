@@ -35,14 +35,18 @@ def main():
                "--tmpfs", "/tmp:uid=101,gid=101", "-p", "127.0.0.1::8080", "testflow-web:dev")
         port = docker("port", web, "8080/tcp").rsplit(":", 1)[1]
         origin = f"http://127.0.0.1:{port}"
-        for attempt in range(40):
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
             try:
                 status, _, body = response(origin + "/api/v1/system/status")
                 if status == 200:
                     break
-            except (URLError, HTTPError, TimeoutError):
-                time.sleep(0.25)
+            except (URLError, HTTPError, TimeoutError, ConnectionError):
+                pass
+            time.sleep(0.25)
         else:
+            for name in (server, web):
+                subprocess.run(["docker", "logs", "--tail", "80", name], check=False)
             raise RuntimeError("Containers did not become available")
         assert json.loads(body)["architecture"] == "monolith"
         assert json.loads(response(origin + "/healthz")[2]) == {"status": "ok"}
