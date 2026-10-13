@@ -14,7 +14,7 @@ workflow：[离线检索](workflows/retrieval.workflow.json?raw=true) · [文字
 
 素材包：[3 份固定合成素材 ZIP](downloads/assets/helpdesk.assets.zip?raw=true)。测试集：[离线检索](datasets/retrieval.dataset.json?raw=true) · [文字问答](datasets/text.dataset.json?raw=true) · [语音问答](datasets/voice.dataset.json?raw=true) · [图片文字问答](datasets/image.dataset.json?raw=true)。素材包包含文字、WAV、PNG、标签、分类及素材参考；测试集包含有序 Schema、案例与固定素材摘要，案例参考默认留空。无需手工重新建立案例。
 
-模块、workflow、素材包和测试集随源码版本一同发布，下载链接对应正在查看的 Git ref。Beta PR 合并前使用 `feature/v0.0.1-beta` 分支或其固定 commit 下载。此前发布前的测试通过临时 HTTP 地址下载工作区文件，并明确记录其来源；仓库代码仍从真实 GitHub 获取。
+模块、workflow、素材包和测试集随源码版本一同发布，下载链接对应正在查看的 Git ref。[Beta PR #1](https://github.com/Minecodex/TestFlow/pull/1) 已合并到 `main`，可从主分支或固定 commit 下载。此前发布前的测试通过临时 HTTP 地址下载工作区文件，并明确记录其来源；仓库代码仍从真实 GitHub 获取。
 
 ## 准备镜像与下载
 

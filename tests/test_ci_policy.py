@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import sys
+import subprocess
 from types import SimpleNamespace
 from http.server import HTTPServer
 from threading import Thread
@@ -10,6 +11,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from ci_changes import classify
+from ci_changes import main as select_changes
 from ci_release import export_evidence
 from kubernetes_support import desktop_kind_nodes
 
@@ -31,6 +33,30 @@ def test_shared_contracts_and_ci_changes_select_their_dependents():
     assert classify(['contracts/openapi.json'])['web']
     assert all(classify(['.github/workflows/release-tests.yml']).values())
     assert all(classify(['new-source-directory/main.py']).values())
+
+
+def test_moving_source_into_docs_still_checks_the_source_deletion(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    def git(*arguments):
+        return subprocess.check_output(['git', '-c', 'user.name=CI fixture',
+                                       '-c', 'user.email=ci@example.invalid', *arguments], text=True)
+    git('init', '--initial-branch=main')
+    source = tmp_path / 'server/src/example.py'
+    source.parent.mkdir(parents=True)
+    source.write_text('print("source moved")\n')
+    git('add', '.')
+    git('commit', '-m', 'source fixture')
+    base = git('rev-parse', 'HEAD').strip()
+    destination = tmp_path / 'docs/example.md'
+    destination.parent.mkdir()
+    source.rename(destination)
+    git('add', '--all')
+    git('commit', '-m', 'move source into docs')
+    monkeypatch.setattr(sys, 'argv', ['ci_changes.py', '--base', base])
+    monkeypatch.delenv('GITHUB_OUTPUT', raising=False)
+    select_changes()
+    selected = json.loads(capsys.readouterr().out)
+    assert selected['backend'] and selected['tooling']
 
 
 @pytest.mark.parametrize(('actual', 'evidence', 'score'), [

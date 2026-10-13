@@ -41,7 +41,7 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r'[0-9a-f]{40}', args.base):
         parser.error('The base must be a complete Git commit SHA')
-    paths = subprocess.check_output(['git', 'diff', '--name-only', '-z', args.base, 'HEAD']).decode().split('\0')
+    paths = subprocess.check_output(['git', 'diff', '--no-renames', '--name-only', '-z', args.base, 'HEAD']).decode().split('\0')
     selected = classify([path for path in paths if path])
     if destination := os.environ.get('GITHUB_OUTPUT'):
         with Path(destination).open('a') as output:
