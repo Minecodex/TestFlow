@@ -32,7 +32,8 @@ async def main():
     if op['state'] not in {'queued','running'}:assert op['state']=='succeeded';break
     await asyncio.sleep(.5)
   ex=await call('GET','/executions/'+text);evaluation=next(e for e in ex['evaluations'] if e['id']==score['id']);assert evaluation['state']=='completed' and evaluation['result']['verdict']=='pass'
-  checks.append('restored_encrypted_vault_real_kimi_call')
+  provider=source.get('ai',{}).get('provider_kind','real_kimi')
+  checks.append('restored_encrypted_vault_'+provider+'_call')
   destination=ROOT/'.data/acceptance'/a.namespace;destination.mkdir(parents=True,exist_ok=True);(destination/'restore.json').write_text(json.dumps({'source':a.source,'destination':a.namespace,'checks':checks},indent=2)+'\n')
   print(json.dumps({'passed':checks,'evidence':str(destination/'restore.json')},indent=2))
 asyncio.run(main())

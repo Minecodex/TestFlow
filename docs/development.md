@@ -91,6 +91,45 @@ uv run --project server python tests/kubernetes/beta_installation.py
 
 ## GitHub 分支与合并
 
-默认主分支为 `main`，修改通过工作分支提交 PR。主分支保护要求经 PR 合并、解决全部审查讨论，禁止强制推送与删除，规则对管理员同样生效。当前仅有一位维护者，必需审批数为 0；仓库尚未配置 GitHub Actions，暂未设置必需状态检查。
+默认主分支为 `main`，修改通过工作分支提交 PR。主分支保护要求经 PR 合并、解决全部审查讨论，禁止强制推送与删除，规则对管理员同样生效。当前仅有一位维护者，必需审批数为 0；合并前必须通过 GitHub Actions 的 `PR checks`，并保持分支与 `main` 最新状态一致。
 
 `v0.0.1-beta` 使用既有 `feature/v0.0.1-beta` 分支交付。提交前运行后端与初始化测试、前端类型检查和构建、原型测试以及部署目录一致性检查，相关 Kubernetes 与浏览器验收结果保存在部署设计和专项文档中。
+
+## GitHub Actions
+
+每次创建或更新面向 `main` 的 PR，运行 [PR quick checks](../.github/workflows/pr-checks.yml)。根据完整 Git diff 选择检查，不构建镜像或启动 Kubernetes；连续推送会取消该 PR 上一轮尚未完成的检查。
+
+| 改动范围 | PR 检查 |
+| --- | --- |
+| `server/` | SQLite 后端单元测试、OpenAPI 一致性、部署工具测试 |
+| `web/`、`packages/` | 前端与 SDK 类型检查 |
+| `contracts/` | 后端、前端及工具检查 |
+| `scripts/`、`deploy/`、Python 工具测试 | 工具测试及静态部署目录一致性 |
+| `docs/demo.html`、其他 `tests/` | 原型及 Trace 契约测试 |
+| `examples/` | 后端、原型及工具检查 |
+| Actions 或 CI 工具、新增未知源码目录 | 全部快速检查 |
+| 仅 Markdown、文档图片 | 不安装应用依赖，只返回成功状态 |
+
+依赖使用仓库锁文件与缓存。所有分支最后汇总为唯一的 `PR checks`；被范围筛选跳过的任务允许成功汇总，执行失败或取消会阻止合并。工作流本身始终响应 PR，避免文档 PR 缺少必需状态。
+
+[Release full tests](../.github/workflows/release-tests.yml) 仅在推送 `v*` 版本标签时自动执行，也可手动指定**已经存在的版本标签**重跑。普通 PR 和分支推送不触发全量测试；工作流验证 `v主版本.次版本.补丁版本[-预发布标识]`。发布镜像或创建 GitHub Release 前，应确认对应标签的全量检查通过；该工作流负责验证，不自动发布镜像或 Release。
+
+在首次合并工作流或发布版本之前，维护者可给 PR 手动添加 `ci:full-tests` 标签，执行同一套全量流程来验证候选版本。只监听这次标签添加事件，固定检验该次 PR 的 head commit；后续普通提交不会自动重跑全量。如需验证更新后的候选代码，移除并重新添加标签。其他标签只产生跳过的任务。GitHub 的手动运行入口要求工作流先存在于默认分支，这个标签入口允许在合并前验证；它不创建版本标签或发布 Release。
+
+PostgreSQL 单元测试使用独立的 `testflow_ci_test` 数据库，保留测试夹具对 `_test` 名称后缀的保护检查，避免破坏业务库。
+
+发布检查包括 SQLite/PostgreSQL 18 全部后端测试、工具测试、前端生产构建、原型与生成接口一致性，以及 Linux AMD64/ARM64 候选镜像、独立 kind 集群中的真实模块 Pod、流式媒体、执行边界、故障恢复、备份恢复、最新桌面浏览器和单次 apply 安装验收。具体有效范围见 [发布自动化验收](../tests/README.md#发布自动化验收)。
+
+CI 的 AI 评分使用确定性 HTTP 协议夹具，实际经过凭据加密、后端评分和恢复调用链，不消耗外部模型额度。真实 Kimi 服务质量与公开仓库完整业务示例仍按专项文档单独验收，不将协议夹具记录为真实模型调用。
+
+本地验证发布集成流程时，先准备候选镜像及模块包，再使用独立的 `kind-testflow-ci-<run-id>` 上下文和 kubeconfig：
+
+```sh
+uv run --project server python scripts/ci_release.py prepare
+uv run --project server python scripts/ci_release.py integration \
+  --context kind-testflow-ci-<run-id> --kubeconfig <测试集群配置>
+```
+
+每个测试安装使用随机的 `testflow-e2e-` 或 `testflow-restore-` namespace，并在成功或失败后清理 namespace、卷及端口转发；kind Action 最后删除整套临时集群。公开的结果、截图和脱敏 Trace 作为 Actions artifact 保留 14 天，访问文件、原始 Trace、kubeconfig 和 Secret 不上传。
+
+Linux AMD64/ARM64 候选版本已完成 GitHub 云端实跑，完整范围、运行链接和资源回收证据见 [云端全量验证记录](voice-test-platform/15-工程结构与部署.md#2026-10-13-github-actions-云端全量验证)。

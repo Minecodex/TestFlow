@@ -27,6 +27,8 @@ ROOT=Path(__file__).resolve().parents[2]
 parser=argparse.ArgumentParser()
 parser.add_argument('--namespace',required=True)
 parser.add_argument('--kimi-reference',type=Path,default=ROOT/'.data/kimi-credential-reference')
+parser.add_argument('--evaluation-endpoint', default='https://api.kimi.com/coding/v1')
+parser.add_argument('--evaluation-credential-file', type=Path)
 args=parser.parse_args()
 access=json.loads((ROOT/'.data/kubernetes'/args.namespace/'access.json').read_text())
 output=ROOT/'.data/acceptance'/args.namespace;output.mkdir(parents=True,exist_ok=True)
@@ -116,7 +118,7 @@ async def main():
             flow={'name':'验收：'+module['name'],'input_schema':inp,'output_schema':out,'nodes':[{'id':'start','kind':'start','name':'开始','x':50,'y':180,'output_schema':inp}, {'id':'module','kind':'module','name':module['name'],'x':340,'y':180,'module_id':module['id'],'module_version':module['selected_version'],'parameters':module['data']['manifest']['defaults'],'runtime':module['runtime']}, {'id':'end','kind':'end','name':'结束','x':660,'y':180,'input_schema':out,'output_schema':out}],'edges':[{'source':'start','target':'module'},{'source':'module','target':'end'}]}
             flow=await call('POST','/pipelines',flow);flows[key]=flow
             field=inp['fields'][0];asset=assets[field['type']]
-            dataset={'name':'验收案例：'+module['name'],'input_schema':inp,'output_schema':out,'cases':[{'id':str(uuid4()),'name':module['name']+'真实输入','inputs':{field['name']:{'asset_id':asset['id'],'asset_version':asset['version']}}}]}
+            dataset={'name':'验收案例：'+module['name'],'input_schema':inp,'cases':[{'id':str(uuid4()),'name':module['name']+'真实输入','inputs':{field['name']:{'asset_id':asset['id'],'asset_version':asset['version']}}}]}
             datasets[key]=await call('POST','/datasets',dataset)
         body={'name':'验收：跨语言真实任务','pairs':[{'dataset_id':datasets[k]['id'],'dataset_version':1,'pipeline_id':v['id'],'pipeline_version':1} for k,v in flows.items()],'profile_id':profile['id'],'profile_version':1,'concurrency':2}
         preview=await call('POST','/tasks/preview',body);check(preview['plan_count']==3,'Frozen pair plan')
@@ -141,19 +143,24 @@ async def main():
         reports=await call('GET','/tasks/'+task['id']+'/reports')
         check(reports['current']['plan_count']==3 and any(r['id']==old['id'] and r['snapshot']==old['snapshot'] for r in reports['items']),'Old reports immutable; denominator unchanged')
         evidence['checks'].append('rerun_new_pod_immutable_old_report_and_stable_denominator')
-        if args.kimi_reference.exists():
-            settings=Settings(_env_file=ROOT/'.env');database=Database(settings)
-            async with database.sessions() as db:
-                token=await credential_value(db,settings,args.kimi_reference.read_text().strip())
-            await database.close()
+        if args.evaluation_credential_file or args.kimi_reference.exists():
+            if args.evaluation_credential_file:
+                token=args.evaluation_credential_file.read_text().strip()
+            else:
+                settings=Settings(_env_file=ROOT/'.env');database=Database(settings)
+                async with database.sessions() as db:
+                    token=await credential_value(db,settings,args.kimi_reference.read_text().strip())
+                await database.close()
             credential=await call('POST','/credentials',{'name':'验收：Kimi','kind':'evaluation','value':token})
             token=None
-            ai=await call('POST','/evaluation-profiles',{'name':'验收：Kimi K3','endpoint':'https://api.kimi.com/coding/v1','model':'k3','credential_id':credential['id'],'response_format':'json_schema','dimensions':[{'id':'ai','name':'文本质量','method':'ai','threshold':.5,'actual':{'source':'output','field':'text'},'prompt':'Score 1 if the actual text equals HELLO TESTFLOW; otherwise score 0. Cite actual as evidence.'}]})
+            ai=await call('POST','/evaluation-profiles',{'name':'验收：评分协议','endpoint':args.evaluation_endpoint,'model':'k3','credential_id':credential['id'],'response_format':'json_schema','dimensions':[{'id':'ai','name':'文本质量','method':'ai','threshold':.5,'actual':{'source':'output','field':'text'},'prompt':'Score 1 if the actual text equals HELLO TESTFLOW; otherwise score 0. Cite actual as evidence.'}]})
             scoring=await call('POST','/executions/'+retry['id']+'/reevaluate?profile_id='+ai['id']+'&profile_version=1',headers={'Idempotency-Key':str(uuid4())})
             await op(scoring['operation_id']);scored=await call('GET','/executions/'+retry['id'])
             record=next(e for e in scored['evaluations'] if e['id']==scoring['id'])
-            check(record['state']=='completed' and record['result']['verdict']=='pass','Real Kimi evaluation must pass '+str(record.get('error')))
-            evidence['ai']=record['result'];evidence['checks'].append('real_kimi_k3_json_schema_scoring_and_evidence_validation')
+            check(record['state']=='completed' and record['result']['verdict']=='pass','Scoring protocol must pass '+str(record.get('result')))
+            provider='contract_fixture' if args.evaluation_credential_file else 'real_kimi'
+            evidence['ai']={**record['result'], 'provider_kind':provider}
+            evidence['checks'].append(provider+'_json_schema_scoring_and_evidence_validation')
         else: evidence['ai']={'state':'not_tested','reason':'Real credential reference unavailable'}
         evidence['resources'].update(task=task['id'],profile=profile['id'],pipelines={k:v['id'] for k,v in flows.items()},datasets={k:v['id'] for k,v in datasets.items()},assets={k:v['id'] for k,v in assets.items()})
         check(not json.loads(kube('get','pods','-l','testflow-runtime','-o','json'))['items'],'Batch module Pods reclaimed')

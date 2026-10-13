@@ -2,6 +2,37 @@
 
 正式业务、原型逻辑、浏览器交互和视觉比较分别验收。原型内的模拟运行不计入真实执行或评分证据。完整状态与证据索引见 [实施记录](../docs/voice-test-platform/16-完整实施记录.md)。
 
+## 发布自动化验收
+
+GitHub Actions 的普通 PR 仅按改动范围运行快速检查，合并门禁统一为 `PR checks`。版本全量测试由推送 `v*` 版本标签或手动指定已有标签启动；触发和范围规则见 [开发说明](../docs/development.md#github-actions)。
+
+发布前验证候选版本时，由维护者明确添加 PR 标签 `ci:full-tests` 手动启动同一工作流，固定测试该次 head commit。普通 PR 提交和其他标签不执行全量测试；更新候选代码后的重试需重新添加标签。PostgreSQL 矩阵使用独立 `_test` 后缀测试库。
+
+发布工作流执行全部当前后端测试（SQLite 和 PostgreSQL 18）、Python 工具测试、前端构建、原型/Trace 测试及生成接口一致性；随后在 AMD64 和 ARM64 两套独立 kind 集群执行 `scripts/ci_release.py`：
+
+后端单元测试输出每项测试名称，持续阻塞 90 秒输出线程堆栈和异步任务等待链，整套测试限制为 5 分钟。容器冒烟测试先在 60 秒内等待 API 就绪，启动过程中的连接拒绝、重置或代理未就绪可重试；就绪后的健康、权限、只读文件系统和代理断言不重试。启动超时输出容器日志并失败。
+
+执行取消会等待已开始的独立数据库操作完成提交或回滚，重复取消也不打断事务清理；取消之后不再重试这次操作。两项回归覆盖成功提交和失败回滚，避免节点收尾取消驱动调用后留下 SQLite 读锁。此边界只包裹既有数据库重试操作，不重放模块或模型调用。
+
+| 集成入口 | 验收内容 |
+| --- | --- |
+| `container-smoke.py` | 非 root、只读运行、健康、代理与静态资源 |
+| `kubernetes/acceptance.py` | 空安装、固定 Git commit、三语言模块 Pod、任务、规则/模型评分、重跑与旧报告 |
+| `live_media.py`、`go_protocol.py`、`code_mount.py` | 流式音频/图片、EOS、取消与协议错误、固定代码只读挂载及回收 |
+| `transaction_and_media.py` | 提交可见性、真实 FFmpeg、音频字节与 Range |
+| `boundaries.py`、`reliability.py` | 执行边界、终态、数据库中断、重启、取消与独立收尾 |
+| `backup_restore.py` | 独立安装的数据库/PVC 恢复、历史、媒体和加密凭据调用 |
+| `input_only.py` | 当前输入组、素材只读预览、模型表单、评分成功/失败、交换与删除的真实浏览器场景 |
+| `beta_installation.py` | 候选镜像的一次目录 apply、初始化/迁移等待、重复 apply 保留密钥、节点配置与真实 Pod 浏览器场景 |
+
+AI 使用集群内的确定性评分协议夹具，不需要 GitHub Secret；证据明确标为 `contract_fixture`。真实 Kimi 和公开 GitHub 业务示例仍保留单独验收入口，需要外部服务与凭据，不属于这套自包含 CI 的自动调用范围。安装测试使用当前标签构建的候选镜像；已发布 Docker Hub 镜像的验收继续使用 `beta_installation.py` 默认入口。
+
+当前浏览器发布范围采用第 23、24 篇的桌面、中英文和深浅主题契约。下文旧原型控件、标准答案、恢复/回收站和像素对照是历史专项记录，不能直接作为当前全量浏览器入口；未重新适配的历史脚本不在发布工作流中冒充通过。测试结果保存在 `.data/ci-evidence/release-result.json`，公开白名单证据上传为 Actions artifact；失败同样清理测试 namespace、卷与端口转发。
+
+2026-10-13 在独立 ARM64 kind 集群中完成上述 11 组集成套件；输入组浏览器 18 个场景/48 组布局、安装 15 项检查及节点配置 14 个场景/12 组布局通过。四个 namespace、卷、端口转发和整个集群均已回收，正常部署保留。快速检查也已在 GitHub 实跑通过，详见 [CI 与 kind 验证记录](../docs/voice-test-platform/15-工程结构与部署.md#2026-10-13-ci-策略与独立-kind-验证)。
+
+同日 GitHub 的 Linux AMD64 与 ARM64 全量任务均通过上述 11 组套件，两种架构的浏览器场景、布局与资源回收均有云端证据，见 [GitHub Actions 云端全量验证](../docs/voice-test-platform/15-工程结构与部署.md#2026-10-13-github-actions-云端全量验证)。
+
 ## 类型、构建与业务测试
 
 ```sh
@@ -12,7 +43,7 @@ node --test tests/*.test.cjs
 pnpm check:k8s
 ```
 
-当前 71 项后端测试覆盖会话、持久版本与幂等、素材、ZIP、模块运行配置修订与声明约束、示例安装的默认配置保存和重复运行、图契约、流序号/EOS、终态、评测绑定、CER、JSON null/有限数、统计和 Trace 脱敏。默认使用测试 SQLite；设置 `TESTFLOW_TEST_DATABASE_URL` 后使用独立 PostgreSQL 18 测试库。测试会重建业务表，禁止指向正式工作库。此前两种数据库均有通过记录；第 22 篇本轮 65 项 pytest 使用 SQLite，PostgreSQL 18 通过独立 Kubernetes 部署的实际接口与浏览器联调验证。
+当前 73 项后端测试覆盖会话、持久版本与幂等、素材、ZIP、模块运行配置修订与声明约束、示例安装的默认配置保存和重复运行、图契约、流序号/EOS、终态、数据库事务取消、评测绑定、CER、JSON null/有限数、统计和 Trace 脱敏。默认使用测试 SQLite；设置 `TESTFLOW_TEST_DATABASE_URL` 后使用独立 PostgreSQL 18 测试库。测试会重建业务表，禁止指向正式工作库。此前两种数据库均有通过记录；第 22 篇本轮 65 项 pytest 使用 SQLite，PostgreSQL 18 通过独立 Kubernetes 部署的实际接口与浏览器联调验证。
 
 19 项原型及清单测试通过 `demo-test-helpers.cjs` 加载真实 demo 逻辑，不操作浏览器。覆盖 Pod-only 边界、挂载、快照、九页/六页签、排队输入冻结、参考、重跑、旧报告、CER、任意输出字段、媒体、转换、错误、取消、当前尝试和具名控件归属。AI 分数与合格线使用 0–1，CER 保留原始错误率。
 

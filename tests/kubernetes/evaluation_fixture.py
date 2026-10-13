@@ -22,8 +22,10 @@ class Handler(BaseHTTPRequestHandler):
         requests.append({'model': body['model'], 'content_types': [item['type'] for item in content],
             'material': data['material'], 'format': body['response_format']['type']})
         actual = data['material']['actual']
-        score = 0 if 'wrong' in str(actual.get('answer', '')) else 1
-        result = {'score': score, 'reason': 'Contract fixture decision only', 'evidence': ['actual', 'evidence:0']}
+        answer = actual.get('answer', actual) if isinstance(actual, dict) else actual
+        score = 0 if 'wrong' in str(answer) else 1
+        evidence = ['actual'] + (['evidence:0'] if data['material'].get('evidence') else [])
+        result = {'score': score, 'reason': 'Contract fixture decision only', 'evidence': evidence}
         self.send({'model': 'contract-fixture', 'choices': [{'finish_reason': 'stop', 'message': {'content': json.dumps(result)}}]})
 
 if __name__ == '__main__':

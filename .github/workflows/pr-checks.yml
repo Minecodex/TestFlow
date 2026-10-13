@@ -1,0 +1,103 @@
+name: PR quick checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      backend: ${{ steps.scope.outputs.backend }}
+      web: ${{ steps.scope.outputs.web }}
+      demo: ${{ steps.scope.outputs.demo }}
+      tooling: ${{ steps.scope.outputs.tooling }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 scripts/ci_changes.py --base "$BASE_SHA"
+
+  backend:
+    name: Backend unit tests
+    needs: changes
+    if: needs.changes.outputs.backend == 'true' || needs.changes.outputs.tooling == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-python
+      - name: Backend regression tests with SQLite
+        if: needs.changes.outputs.backend == 'true'
+        run: uv run --directory server pytest -q
+      - name: OpenAPI contract consistency
+        if: needs.changes.outputs.backend == 'true'
+        run: |
+          uv run --project server python scripts/generate-openapi.py
+          git diff --exit-code -- contracts/openapi.json
+      - name: Tooling and initialization tests
+        if: needs.changes.outputs.tooling == 'true'
+        run: uv run --project server pytest -q tests/test_*.py
+      - name: Declarative deployment consistency
+        if: needs.changes.outputs.tooling == 'true'
+        run: uv run --project server python scripts/export-kubernetes.py --check
+
+  web:
+    name: Frontend types
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ./.github/actions/setup-js
+      - run: pnpm typecheck
+
+  demo:
+    name: Prototype and trace contracts
+    needs: changes
+    if: needs.changes.outputs.demo == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - run: node --test tests/*.test.cjs
+
+  result:
+    name: PR checks
+    if: always()
+    needs: [changes, backend, web, demo]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Aggregate the required result
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          results = json.loads(os.environ['RESULTS'])
+          failed = [name for name, item in results.items()
+                    if item['result'] not in {'success', 'skipped'}]
+          if results['changes']['result'] != 'success' or failed:
+              raise SystemExit('PR checks failed: ' + ', '.join(failed))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('PR checks passed. Jobs outside the changed scope were skipped.\n')
+          PY

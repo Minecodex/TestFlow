@@ -44,4 +44,4 @@ GitHub 仓库代码引用已实测。2026-10-12 验收时新增 ZIP/workflow 尚
 
 完整代码及示例文件已推送到 `feature/v0.0.1-beta`，功能提交为 [`8bf7218`](https://github.com/Minecodex/TestFlow/commit/8bf72185ffda67e6993875b6a1f0b896ba608400)。通过 GitHub 固定 commit 匿名下载五个模块 ZIP、四份 workflow、一份素材包及四个测试集，全部 SHA-256 校验通过，来源记录为 `kind=github`。部署目录与 README 远端内容核对通过，默认 namespace 为 `testflow`。
 
-[PR #1](https://github.com/Minecodex/TestFlow/pull/1) 合并目标为 `main`；合并前使用上述功能提交或 Beta 分支下载文件。下载证据为 `.data/github-publication/20261013/downloaded-example/download-source.json`，主分支保护已启用，规则见 [开发说明](../development.md#github-分支与合并)。
+[PR #1](https://github.com/Minecodex/TestFlow/pull/1) 已于 2026-10-13 合并到 `main`，合并提交为 `eccbfcc450f908e111a8868292e55cc3ea4d099e`；可从主分支或上述固定功能提交下载文件。下载证据为 `.data/github-publication/20261013/downloaded-example/download-source.json`，主分支保护已启用，规则见 [开发说明](../development.md#github-分支与合并)。

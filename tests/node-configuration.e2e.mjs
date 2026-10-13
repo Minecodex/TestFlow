@@ -120,7 +120,9 @@ try {
   await step('schema-declared-business-credential-is-configurable',async()=>{
     const result=await context.request.post('/api/v1/modules/import',{headers:{'Idempotency-Key':randomUUID()},multipart:{file:{name:'repo-kimi.zip',mimeType:'application/zip',buffer:await fs.readFile('examples/repository-helpdesk/downloads/modules/repo-kimi.zip')}}});
     expect(result.ok()).toBe(true);const capability=await result.json();await expect.poll(async()=>(await read('operations',capability.operation_id)).state,{timeout:60000}).toBe('succeeded');
-    await button('添加节点').click();await page.locator('.testflow-palette [data-a="add-node"]').filter({hasText:capability.name}).click();const businessNode=page.locator('.react-flow__node').filter({hasText:capability.name});await businessNode.click();
+    await button('添加节点').click();await page.locator('.testflow-palette [data-a="add-node"]').filter({hasText:capability.name}).click();
+    await expect(page.locator('.react-flow__node:visible')).toHaveCount(4);
+    const businessNode=page.locator('.react-flow__node').filter({hasText:capability.name});await businessNode.click();
     await button('配置能力凭据',dialog()).click();await button('配置访问凭据',dialog()).click();
     await dialog().getByRole('textbox',{name:'名称',exact:true}).fill('TEST module credential');await dialog().getByRole('textbox',{name:'凭据正文（加密保存）',exact:true}).fill('fixture-business-key');await button('保存',dialog()).click();
     await expect(page.locator('[data-slot="modal-dialog"]')).toHaveCount(2);await dialog().getByRole('button',{name:'关闭',exact:true}).last().click();await expect(page.locator('[data-slot="modal-dialog"]')).toHaveCount(1);

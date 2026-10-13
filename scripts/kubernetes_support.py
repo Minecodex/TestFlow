@@ -60,20 +60,32 @@ def kube_connection(access, namespace=None):
 
 
 def desktop_kind_nodes(target):
-    if target.context != 'docker-desktop':
-        raise SystemExit('Local image loading requires Docker Desktop; use a registry for other clusters')
+    desktop = target.context == 'docker-desktop'
+    ci = target.context.startswith('kind-testflow-ci-')
+    if not desktop and not ci:
+        raise SystemExit('Local image loading requires Docker Desktop or an owned testflow-ci kind cluster')
     nodes = json.loads(target.run('get', 'nodes', '-o', 'json', text=True).stdout)['items']
     if not nodes:
-        raise SystemExit('Docker Desktop has no Kubernetes nodes')
-    if all(node['spec'].get('providerID', '').startswith('kind://docker/desktop/') for node in nodes):
+        raise SystemExit('The selected cluster has no Kubernetes nodes')
+    cluster = 'desktop' if desktop else target.context.removeprefix('kind-')
+    prefix = f'kind://docker/{cluster}/'
+    if all(node['spec'].get('providerID', '').startswith(prefix) for node in nodes):
+        if ci:
+            inspection = subprocess.run(['docker', 'inspect', *[node['metadata']['name'] for node in nodes]],
+                                        check=True, capture_output=True, text=True)
+            containers = json.loads(inspection.stdout)
+            if len(containers) != len(nodes) or any(
+                row['Config'].get('Labels', {}).get('io.x-k8s.kind.cluster') != cluster for row in containers
+            ):
+                raise SystemExit('CI kind node ownership does not match the selected cluster')
         return nodes
-    if any(node['spec'].get('providerID', '').startswith('kind://') for node in nodes):
+    if ci or any(node['spec'].get('providerID', '').startswith('kind://') for node in nodes):
         raise SystemExit('Refusing to import images into an unrecognized kind cluster')
     return []  # Docker Desktop kubeadm uses the shared Docker image store.
 
 
 def load_local_images(target, images):
-    """Stream local images to every Desktop kind node, including replacement tags."""
+    """Stream local images to verified Desktop or disposable CI kind nodes."""
     images = list(dict.fromkeys(images))
     subprocess.run(['docker', 'image', 'inspect', *images], check=True, capture_output=True)
     for node in desktop_kind_nodes(target):

@@ -1,5 +1,7 @@
+import asyncio
 import os
 from pathlib import Path
+import sys
 
 import httpx
 import pytest_asyncio
@@ -11,6 +13,31 @@ from sqlalchemy import text
 from testflow.core.config import Settings
 from testflow.infrastructure.database import Base
 from testflow.main import create_app
+
+
+def report_async_tasks():
+    """Expose coroutine wait locations alongside faulthandler's thread stacks."""
+    for task in asyncio.all_tasks():
+        print(f'\nAsync task: {task.get_name()}', file=sys.stderr, flush=True)
+        coroutine = task.get_coro()
+        while coroutine is not None:
+            frame = getattr(coroutine, 'cr_frame', getattr(coroutine, 'gi_frame', None))
+            if frame is not None:
+                print(f'  {frame.f_code.co_filename}:{frame.f_lineno} in {frame.f_code.co_name}',
+                      file=sys.stderr, flush=True)
+            coroutine = getattr(coroutine, 'cr_await', getattr(coroutine, 'gi_yieldfrom', None))
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def async_wait_diagnostics(request):
+    seconds = float(request.config.getini('faulthandler_timeout'))
+    handle = asyncio.get_running_loop().call_later(seconds, report_async_tasks) if seconds > 0 else None
+    try:
+        yield
+    finally:
+        if handle is not None:
+            handle.cancel()
+
 
 @pytest_asyncio.fixture
 async def app_client(tmp_path: Path):
