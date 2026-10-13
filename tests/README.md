@@ -2,6 +2,27 @@
 
 正式业务、原型逻辑、浏览器交互和视觉比较分别验收。原型内的模拟运行不计入真实执行或评分证据。完整状态与证据索引见 [实施记录](../docs/voice-test-platform/16-完整实施记录.md)。
 
+## 发布自动化验收
+
+GitHub Actions 的 PR 仅按改动范围运行快速检查，合并门禁统一为 `PR checks`。全量测试只在推送 `v*` 版本标签或手动指定已有标签时运行；触发和范围规则见 [开发说明](../docs/development.md#github-actions)。
+
+发布工作流执行全部当前后端测试（SQLite 和 PostgreSQL 18）、Python 工具测试、前端构建、原型/Trace 测试及生成接口一致性；随后在 AMD64 和 ARM64 两套独立 kind 集群执行 `scripts/ci_release.py`：
+
+| 集成入口 | 验收内容 |
+| --- | --- |
+| `container-smoke.py` | 非 root、只读运行、健康、代理与静态资源 |
+| `kubernetes/acceptance.py` | 空安装、固定 Git commit、三语言模块 Pod、任务、规则/模型评分、重跑与旧报告 |
+| `live_media.py`、`go_protocol.py`、`code_mount.py` | 流式音频/图片、EOS、取消与协议错误、固定代码只读挂载及回收 |
+| `transaction_and_media.py` | 提交可见性、真实 FFmpeg、音频字节与 Range |
+| `boundaries.py`、`reliability.py` | 执行边界、终态、数据库中断、重启、取消与独立收尾 |
+| `backup_restore.py` | 独立安装的数据库/PVC 恢复、历史、媒体和加密凭据调用 |
+| `input_only.py` | 当前输入组、素材只读预览、模型表单、评分成功/失败、交换与删除的真实浏览器场景 |
+| `beta_installation.py` | 候选镜像的一次目录 apply、初始化/迁移等待、重复 apply 保留密钥、节点配置与真实 Pod 浏览器场景 |
+
+AI 使用集群内的确定性评分协议夹具，不需要 GitHub Secret；证据明确标为 `contract_fixture`。真实 Kimi 和公开 GitHub 业务示例仍保留单独验收入口，需要外部服务与凭据，不属于这套自包含 CI 的自动调用范围。安装测试使用当前标签构建的候选镜像；已发布 Docker Hub 镜像的验收继续使用 `beta_installation.py` 默认入口。
+
+当前浏览器发布范围采用第 23、24 篇的桌面、中英文和深浅主题契约。下文旧原型控件、标准答案、恢复/回收站和像素对照是历史专项记录，不能直接作为当前全量浏览器入口；未重新适配的历史脚本不在发布工作流中冒充通过。测试结果保存在 `.data/ci-evidence/release-result.json`，公开白名单证据上传为 Actions artifact；失败同样清理测试 namespace、卷与端口转发。
+
 ## 类型、构建与业务测试
 
 ```sh

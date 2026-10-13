@@ -1,0 +1,134 @@
+name: Release full tests
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Existing release tag to validate, such as v0.0.1-beta
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-tests-${{ inputs.version || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    name: All unit tests (${{ matrix.database }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_DB: testflow_ci
+          POSTGRES_USER: testflow_ci
+          POSTGRES_PASSWORD: testflow_ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U testflow_ci -d testflow_ci"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version || github.ref }}
+          fetch-depth: 0
+      - name: Verify the release tag
+        env:
+          VERSION: ${{ inputs.version || github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os, re, subprocess
+          version = os.environ['VERSION']
+          if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?', version):
+              raise SystemExit('A version tag is required')
+          subprocess.run(['git', 'show-ref', '--verify', 'refs/tags/' + version], check=True)
+          PY
+      - uses: ./.github/actions/setup-python
+      - name: Backend suite
+        env:
+          TESTFLOW_TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+asyncpg://testflow_ci:testflow_ci@127.0.0.1:5432/testflow_ci' || '' }}
+        run: |
+          if [ -z "$TESTFLOW_TEST_DATABASE_URL" ]; then
+            unset TESTFLOW_TEST_DATABASE_URL
+          fi
+          uv run --directory server pytest -q
+      - name: Tooling suite and deployment consistency
+        run: |
+          uv run --project server pytest -q tests/test_*.py
+          uv run --project server python scripts/export-kubernetes.py --check
+
+  web:
+    name: Frontend build and contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version || github.ref }}
+      - uses: ./.github/actions/setup-js
+      - uses: ./.github/actions/setup-python
+      - run: pnpm build
+      - run: pnpm test:demo
+      - name: OpenAPI and generated frontend contracts
+        run: |
+          pnpm api
+          git diff --exit-code -- contracts/openapi.json web/src/shared/api
+
+  integration:
+    name: Kubernetes and browsers (${{ matrix.runner }})
+    needs: [unit, web]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.version || github.ref }}
+      - uses: ./.github/actions/setup-js
+      - uses: ./.github/actions/setup-python
+      - name: Browser dependencies
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Build candidate images and fixture packages
+        run: uv run --project server python scripts/ci_release.py prepare
+      - name: Prepare the dedicated kubeconfig directory
+        run: mkdir -p .data/ci
+      - uses: helm/kind-action@1544676c07bb3570fcb70166beaa07c4528fd4aa # v1.15.1
+        with:
+          version: v0.33.0
+          kubectl_version: v1.36.1
+          node_image: kindest/node:v1.36.1
+          cluster_name: testflow-ci-${{ github.run_id }}-${{ github.run_attempt }}
+          kubeconfig: .data/ci/kubeconfig
+          wait: 120s
+      - name: All supported Kubernetes and browser suites
+        env:
+          TESTFLOW_CI_CONTEXT: kind-testflow-ci-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          uv run --project server python scripts/ci_release.py integration \
+            --context "$TESTFLOW_CI_CONTEXT" --kubeconfig .data/ci/kubeconfig
+      - name: Collect public test evidence
+        if: always()
+        run: uv run --project server python scripts/ci_release.py evidence
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: release-evidence-${{ matrix.runner }}
+          path: |
+            .data/ci-evidence/release-result.json
+            .data/ci-evidence/acceptance
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14

@@ -8,6 +8,7 @@
 - [语言无关适配模块、启动与通信](voice-test-platform/14-ZIP模块与动态配置设计.md)
 - [交互原型](demo.html)
 - [原型验证说明](../tests/README.md)
+- [PR 快速检查与版本发布全量测试](development.md#github-actions)
 - [原型全流程审查结果](voice-test-platform/10-首版范围与验收.md#2026-10-11-原型全流程审查结果)
 
 原型在浏览器中模拟业务交互；正式前后端实现真实 Git、ZIP、Pod 执行、评测和持久化。模块统一由 Kubernetes Pod 启动。

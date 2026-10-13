@@ -106,7 +106,7 @@ async def main():
         check(row['state'] == 'succeeded' and row['output']['text']['text'] == 'RELIABILITY', 'Database recovery preserves module output and one terminal')
         check(sum(e['kind'] == 'module.request' for e in row['events']) == 1, 'Database retry never invokes module twice')
         evidence['checks'].append('active_database_outage_restores_durable_terminal_without_reinvocation')
-        data = await call('POST', '/datasets', {'name': 'TEST ONLY: canceled remaining plans', 'input_schema': inp, 'output_schema': out, 'cases': [{'id': str(uuid4()), 'name': text, 'inputs': {'text': {'value': text}}} for text in ['hang', 'success', 'never_started']]})
+        data = await call('POST', '/datasets', {'name': 'TEST ONLY: canceled remaining plans', 'input_schema': inp, 'cases': [{'id': str(uuid4()), 'name': text, 'inputs': {'text': {'value': text}}} for text in ['hang', 'success', 'never_started']]})
         pipeline = await simple('by_input')
         task = await call('POST', '/tasks', {'name': 'TEST ONLY: cancel queued plans', 'pairs': [{'dataset_id': data['id'], 'dataset_version': 1, 'pipeline_id': pipeline['id'], 'pipeline_version': 1}], 'profile_id': profile['id'], 'profile_version': 1}, headers={'Idempotency-Key': str(uuid4())})
         async with asyncio.timeout(40):

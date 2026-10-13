@@ -93,7 +93,7 @@ async def main():
         row=await ended((await quick(pipeline))['id']);check(row['state']=='succeeded' and all(row['output'][n]['text']=='HELLO' and row['output'][n]['eos'] for n in ['left','right']),'Assembly continuously forwards normal streams'); evidence['checks'].append('ordered_assembly_forwards_streams')
         # A single reused Pod has two concurrent invocations; cleanup of one kills the shared runtime.
         pipeline=await simple('by_input',cleanup=.5)
-        dataset=await call('POST','/datasets',{'name':'TEST ONLY: shared runtime','input_schema':inp,'output_schema':out,'cases':[{'id':str(uuid4()),'name':v,'inputs':{'text':{'value':v}}} for v in ['end_then_hang','slow_success','success']]})
+        dataset=await call('POST','/datasets',{'name':'TEST ONLY: shared runtime','input_schema':inp,'cases':[{'id':str(uuid4()),'name':v,'inputs':{'text':{'value':v}}} for v in ['end_then_hang','slow_success','success']]})
         task=await call('POST','/tasks',{'name':'TEST ONLY: shared Pod loss','pairs':[{'dataset_id':dataset['id'],'dataset_version':1,'pipeline_id':pipeline['id'],'pipeline_version':1}],'profile_id':profile['id'],'profile_version':1,'concurrency':2},headers={'Idempotency-Key':str(uuid4())})
         await operation(task['operation_id']); report=(await call('GET','/tasks/'+task['id']))['report']
         runs=[await ended(r['execution_id']) for r in report['rows']]
@@ -122,7 +122,7 @@ async def main():
         preview=await call('POST','/tasks/preview',body);check(preview['effective_concurrency']==1,'Sequential effective concurrency');evidence['checks'].append('sequential_effective_case_concurrency')
         # Abrupt backend restart preserves already ended outputs and interrupts only the active attempt.
         pipeline=await simple('by_input',timeout=40)
-        restart_data=await call('POST','/datasets',{'name':'TEST ONLY: restart','input_schema':inp,'output_schema':out,'cases':[{'id':str(uuid4()),'name':v,'inputs':{'text':{'value':v}}} for v in ['hang','success','success2']]})
+        restart_data=await call('POST','/datasets',{'name':'TEST ONLY: restart','input_schema':inp,'cases':[{'id':str(uuid4()),'name':v,'inputs':{'text':{'value':v}}} for v in ['hang','success','success2']]})
         task=await call('POST','/tasks',{'name':'TEST ONLY: restart recovery','pairs':[{'dataset_id':restart_data['id'],'dataset_version':1,'pipeline_id':pipeline['id'],'pipeline_version':1}],'profile_id':profile['id'],'profile_version':1},headers={'Idempotency-Key':str(uuid4())})
         async with asyncio.timeout(30):
             while True:
