@@ -4,7 +4,9 @@
 
 ## 发布自动化验收
 
-GitHub Actions 的 PR 仅按改动范围运行快速检查，合并门禁统一为 `PR checks`。全量测试只在推送 `v*` 版本标签或手动指定已有标签时运行；触发和范围规则见 [开发说明](../docs/development.md#github-actions)。
+GitHub Actions 的普通 PR 仅按改动范围运行快速检查，合并门禁统一为 `PR checks`。版本全量测试由推送 `v*` 版本标签或手动指定已有标签启动；触发和范围规则见 [开发说明](../docs/development.md#github-actions)。
+
+发布前验证候选版本时，由维护者明确添加 PR 标签 `ci:full-tests` 手动启动同一工作流，固定测试该次 head commit。普通 PR 提交和其他标签不执行全量测试；更新候选代码后的重试需重新添加标签。PostgreSQL 矩阵使用独立 `_test` 后缀测试库。
 
 发布工作流执行全部当前后端测试（SQLite 和 PostgreSQL 18）、Python 工具测试、前端构建、原型/Trace 测试及生成接口一致性；随后在 AMD64 和 ARM64 两套独立 kind 集群执行 `scripts/ci_release.py`：
 

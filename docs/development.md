@@ -114,6 +114,10 @@ uv run --project server python tests/kubernetes/beta_installation.py
 
 [Release full tests](../.github/workflows/release-tests.yml) 仅在推送 `v*` 版本标签时自动执行，也可手动指定**已经存在的版本标签**重跑。普通 PR 和分支推送不触发全量测试；工作流验证 `v主版本.次版本.补丁版本[-预发布标识]`。发布镜像或创建 GitHub Release 前，应确认对应标签的全量检查通过；该工作流负责验证，不自动发布镜像或 Release。
 
+在首次合并工作流或发布版本之前，维护者可给 PR 手动添加 `ci:full-tests` 标签，执行同一套全量流程来验证候选版本。只监听这次标签添加事件，固定检验该次 PR 的 head commit；后续普通提交不会自动重跑全量。如需验证更新后的候选代码，移除并重新添加标签。其他标签只产生跳过的任务。GitHub 的手动运行入口要求工作流先存在于默认分支，这个标签入口允许在合并前验证；它不创建版本标签或发布 Release。
+
+PostgreSQL 单元测试使用独立的 `testflow_ci_test` 数据库，保留测试夹具对 `_test` 名称后缀的保护检查，避免破坏业务库。
+
 发布检查包括 SQLite/PostgreSQL 18 全部后端测试、工具测试、前端生产构建、原型与生成接口一致性，以及 Linux AMD64/ARM64 候选镜像、独立 kind 集群中的真实模块 Pod、流式媒体、执行边界、故障恢复、备份恢复、最新桌面浏览器和单次 apply 安装验收。具体有效范围见 [发布自动化验收](../tests/README.md#发布自动化验收)。
 
 CI 的 AI 评分使用确定性 HTTP 协议夹具，实际经过凭据加密、后端评分和恢复调用链，不消耗外部模型额度。真实 Kimi 服务质量与公开仓库完整业务示例仍按专项文档单独验收，不将协议夹具记录为真实模型调用。

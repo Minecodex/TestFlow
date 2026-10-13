@@ -1,8 +1,12 @@
 name: Release full tests
+run-name: Full tests · ${{ inputs.version || github.event.pull_request.head.sha || github.ref_name }}
 
 on:
   push:
     tags: ["v*"]
+  pull_request:
+    branches: [main]
+    types: [labeled]
   workflow_dispatch:
     inputs:
       version:
@@ -14,12 +18,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: release-tests-${{ inputs.version || github.ref }}
+  group: release-tests-${{ inputs.version || github.event.pull_request.head.sha || github.ref }}
   cancel-in-progress: false
 
 jobs:
   unit:
     name: All unit tests (${{ matrix.database }})
+    if: github.event_name != 'pull_request' || github.event.label.name == 'ci:full-tests'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
@@ -30,24 +35,33 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_DB: testflow_ci
+          POSTGRES_DB: testflow_ci_test
           POSTGRES_USER: testflow_ci
           POSTGRES_PASSWORD: testflow_ci
         ports: ["5432:5432"]
         options: >-
-          --health-cmd "pg_isready -U testflow_ci -d testflow_ci"
+          --health-cmd "pg_isready -U testflow_ci -d testflow_ci_test"
           --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.version || github.ref }}
+          ref: ${{ inputs.version || github.event.pull_request.head.sha || github.ref }}
           fetch-depth: 0
-      - name: Verify the release tag
+      - name: Verify the selected release or candidate commit
         env:
+          EVENT: ${{ github.event_name }}
           VERSION: ${{ inputs.version || github.ref_name }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           python3 - <<'PY'
           import os, re, subprocess
+          if os.environ['EVENT'] == 'pull_request':
+              expected = os.environ['CANDIDATE_SHA']
+              actual = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+              if not re.fullmatch(r'[0-9a-f]{40}', expected) or actual != expected:
+                  raise SystemExit('The explicitly selected candidate commit is required')
+              print('Maintainer-requested candidate validation: ' + actual)
+              raise SystemExit(0)
           version = os.environ['VERSION']
           if not re.fullmatch(r'v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?', version):
               raise SystemExit('A version tag is required')
@@ -56,7 +70,7 @@ jobs:
       - uses: ./.github/actions/setup-python
       - name: Backend suite
         env:
-          TESTFLOW_TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+asyncpg://testflow_ci:testflow_ci@127.0.0.1:5432/testflow_ci' || '' }}
+          TESTFLOW_TEST_DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgresql+asyncpg://testflow_ci:testflow_ci@127.0.0.1:5432/testflow_ci_test' || '' }}
         run: |
           if [ -z "$TESTFLOW_TEST_DATABASE_URL" ]; then
             unset TESTFLOW_TEST_DATABASE_URL
@@ -69,12 +83,13 @@ jobs:
 
   web:
     name: Frontend build and contracts
+    if: github.event_name != 'pull_request' || github.event.label.name == 'ci:full-tests'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.version || github.ref }}
+          ref: ${{ inputs.version || github.event.pull_request.head.sha || github.ref }}
       - uses: ./.github/actions/setup-js
       - uses: ./.github/actions/setup-python
       - run: pnpm build
@@ -96,7 +111,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.version || github.ref }}
+          ref: ${{ inputs.version || github.event.pull_request.head.sha || github.ref }}
       - uses: ./.github/actions/setup-js
       - uses: ./.github/actions/setup-python
       - name: Browser dependencies
