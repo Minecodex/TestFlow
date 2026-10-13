@@ -146,7 +146,7 @@ async def main():
             await asyncio.to_thread(build, 'ENTRYPOINT ["node", "-e", "setInterval(()=>{},1000)"]')
             row = await ended((await quick(pipeline))['id'])
             check(row['state'] == 'failed' and row['error']['code'] == 'preparation_timeout', 'Unready Pod uses preparation deadline')
-            check('started_ms' not in row['nodes']['module'], 'Preparation never starts node runtime clock')
+            check(row['nodes']['module'].get('started_ms') is None, 'Preparation never starts node runtime clock')
             evidence['checks'].append('unready_pod_preparation_timeout_separate_from_runtime')
         finally:
             remove_local_images(KubernetesTarget.from_access(access), [tag])
