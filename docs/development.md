@@ -131,3 +131,5 @@ uv run --project server python scripts/ci_release.py integration \
 ```
 
 每个测试安装使用随机的 `testflow-e2e-` 或 `testflow-restore-` namespace，并在成功或失败后清理 namespace、卷及端口转发；kind Action 最后删除整套临时集群。公开的结果、截图和脱敏 Trace 作为 Actions artifact 保留 14 天，访问文件、原始 Trace、kubeconfig 和 Secret 不上传。
+
+Linux AMD64/ARM64 候选版本已完成 GitHub 云端实跑，完整范围、运行链接和资源回收证据见 [云端全量验证记录](voice-test-platform/15-工程结构与部署.md#2026-10-13-github-actions-云端全量验证)。

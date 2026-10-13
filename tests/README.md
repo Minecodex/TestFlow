@@ -31,6 +31,8 @@ AI 使用集群内的确定性评分协议夹具，不需要 GitHub Secret；证
 
 2026-10-13 在独立 ARM64 kind 集群中完成上述 11 组集成套件；输入组浏览器 18 个场景/48 组布局、安装 15 项检查及节点配置 14 个场景/12 组布局通过。四个 namespace、卷、端口转发和整个集群均已回收，正常部署保留。快速检查也已在 GitHub 实跑通过，详见 [CI 与 kind 验证记录](../docs/voice-test-platform/15-工程结构与部署.md#2026-10-13-ci-策略与独立-kind-验证)。
 
+同日 GitHub 的 Linux AMD64 与 ARM64 全量任务均通过上述 11 组套件，两种架构的浏览器场景、布局与资源回收均有云端证据，见 [GitHub Actions 云端全量验证](../docs/voice-test-platform/15-工程结构与部署.md#2026-10-13-github-actions-云端全量验证)。
+
 ## 类型、构建与业务测试
 
 ```sh
