@@ -34,8 +34,14 @@ Docker Desktop Kubernetes 中的 `testflow-e2e-github-20261012-02` 和 `testflow
 
 集群证据：`.data/acceptance/testflow-e2e-github-20261012-02/repository-workflows.json`、`repository-report.json`、四个 `*-execution.json`、`rerun-execution.json`、`image-boundary.json`；第二套安装保存 `copied-workflow-execution.json`。浏览器目录由 `workflow-ui.json` 指向，包含逐项截图、十二种布局、导出 JSON、原始私有 Trace、脱敏 Trace 和泄漏审计。
 
-GitHub 仓库代码引用已实测。新增 ZIP/workflow 尚未推送，当前 GitHub 下载索引返回 404；`publication.json` 记录为 `pending_publication`。本次通过的是待发布文件的 HTTP 下载、SHA-256 校验、导入和真实执行，`artifacts.kind=unpublished_http_fixture`。不能将其算作已完成 GitHub 文件发布。
+GitHub 仓库代码引用已实测。2026-10-12 验收时新增 ZIP/workflow 尚未推送，GitHub 下载索引返回 404；当时的 `publication.json` 记录为 `pending_publication`。该次通过的是待发布文件的 HTTP 下载、SHA-256 校验、导入和真实执行，`artifacts.kind=unpublished_http_fixture`。
 
-将本次 `examples/repository-helpdesk` 文件随代码推送后，可用 `fetch.py --ref <已推送 ref>` 下载；再次运行集群脚本时传 `--artifact-ref <已推送 ref>`，专门验证真实 GitHub ZIP/workflow 下载。镜像也未发布到公共 registry，README 提供本地明确构建和加载步骤。
+可用 `fetch.py --ref <已推送 ref>` 下载；再次运行集群脚本时传 `--artifact-ref <已推送 ref>`，验证真实 GitHub ZIP/workflow 下载。示例能力镜像仍未发布到公共 registry，README 提供明确构建和加载步骤；平台镜像发布状态见 [部署记录](15-工程结构与部署.md)。
 
 测试结束后按 `cleanup-acceptance.py` 回收两个临时 namespace、Pod、PVC 与端口转发，保留本地证据和正常平台。麦克风继续按用户要求未验收；示例不评判模型质量、自由语音、中文或通用图片语义。
+
+## 2026-10-13 GitHub 发布补充
+
+完整代码及示例文件已推送到 `feature/v0.0.1-beta`，功能提交为 [`8bf7218`](https://github.com/Minecodex/TestFlow/commit/8bf72185ffda67e6993875b6a1f0b896ba608400)。通过 GitHub 固定 commit 匿名下载五个模块 ZIP、四份 workflow、一份素材包及四个测试集，全部 SHA-256 校验通过，来源记录为 `kind=github`。部署目录与 README 远端内容核对通过，默认 namespace 为 `testflow`。
+
+[PR #1](https://github.com/Minecodex/TestFlow/pull/1) 合并目标为 `main`；合并前使用上述功能提交或 Beta 分支下载文件。下载证据为 `.data/github-publication/20261013/downloaded-example/download-source.json`，主分支保护已启用，规则见 [开发说明](../development.md#github-分支与合并)。
